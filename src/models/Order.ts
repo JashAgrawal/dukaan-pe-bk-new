@@ -225,15 +225,15 @@ orderSchema.pre("save", async function (next) {
     const year = date.getFullYear().toString().slice(-2);
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const day = date.getDate().toString().padStart(2, "0");
-    
+
     // Get count of orders for today to generate sequential number
     const todayStart = new Date(date.setHours(0, 0, 0, 0));
     const todayEnd = new Date(date.setHours(23, 59, 59, 999));
-    
+
     const count = await mongoose.model("Order").countDocuments({
       createdAt: { $gte: todayStart, $lte: todayEnd },
     });
-    
+
     // Format: ORD-YYMMDD-XXXX (XXXX is sequential number for the day)
     this.orderNumber = `ORD-${year}${month}${day}-${(count + 1)
       .toString()
@@ -245,17 +245,16 @@ orderSchema.pre("save", async function (next) {
 // Update store's order count when a new order is created
 orderSchema.post("save", async function () {
   if (this.isNew) {
-    await mongoose.model("Store").findByIdAndUpdate(
-      this.store,
-      { $inc: { orderCount: 1 } }
-    );
+    await mongoose
+      .model("Store")
+      .findByIdAndUpdate(this.store, { $inc: { orderCount: 1 } });
   }
 });
 
 // Indexes for faster queries
 orderSchema.index({ user: 1 });
 orderSchema.index({ store: 1 });
-orderSchema.index({ orderNumber: 1 });
+// orderNumber already has a unique index from the schema definition
 orderSchema.index({ orderStatus: 1 });
 orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ createdAt: 1 });

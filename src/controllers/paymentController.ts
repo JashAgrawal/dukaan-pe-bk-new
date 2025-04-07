@@ -1,113 +1,113 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
+import { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
 import { razorpayInstance, razorpayConfig } from "../config/razorpay";
 import Payment from "../models/Payment";
 import Order from "../models/Order";
 import DeliveryTracking from "../models/DeliveryTracking";
+import { catchAsync } from "../middlewares/errorHandler";
 
 /**
  * Create a Razorpay order
  * @route POST /api/payments/create-razorpay-order
  * @access Private
  */
-export const createRazorpayOrder = async (req: Request, res: Response) => {
-  try {
-    const { orderId, amount, currency = "INR" } = req.body;
-    const userId = req.user?.id;
+export const createRazorpayOrder = catchAsync(
+  async (req: Request, res: Response) => {
+    try {
+      const { orderId, amount, currency = "INR" } = req.body;
+      const userId = (req as any).user?.id;
 
-    // Validate order exists and belongs to user
-    const order = await Order.findOne({
-      _id: orderId,
-      user: userId,
-    });
+      // Validate order exists and belongs to user
+      const order = await Order.findOne({
+        _id: orderId,
+        user: userId,
+      });
 
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
-    }
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
 
-    // Check if payment already exists for this order
-    const existingPayment = await Payment.findOne({
-      order: orderId,
-      status: { $nin: ["failed"] },
-    });
+      // Check if payment already exists for this order
+      const existingPayment = await Payment.findOne({
+        order: orderId,
+        status: { $nin: ["failed"] },
+      });
 
-    if (existingPayment && existingPayment.razorpayOrderId) {
+      if (existingPayment && existingPayment.razorpayOrderId) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            razorpayOrderId: existingPayment.razorpayOrderId,
+            amount: existingPayment.amount,
+            currency: existingPayment.currency,
+            key: razorpayConfig.key_id,
+          },
+        });
+      }
+
+      // Create Razorpay order
+      const razorpayOrder = await razorpayInstance.orders.create({
+        amount: Math.round(amount * 100), // Amount in paise
+        currency,
+        receipt: order.orderNumber,
+        notes: {
+          orderId: (order._id as any).toString(),
+          userId: userId ? userId.toString() : "",
+        },
+      });
+
+      // Create or update payment record
+      let payment;
+      if (existingPayment) {
+        existingPayment.razorpayOrderId = razorpayOrder.id;
+        payment = await existingPayment.save();
+      } else {
+        payment = await Payment.create({
+          user: userId,
+          order: orderId,
+          amount,
+          currency,
+          razorpayOrderId: razorpayOrder.id,
+          paymentMethod: order.paymentType,
+          status: "pending",
+        });
+
+        // Update order with payment ID
+        await Order.findByIdAndUpdate(orderId, { paymentId: payment._id });
+      }
+
       return res.status(200).json({
         success: true,
         data: {
-          razorpayOrderId: existingPayment.razorpayOrderId,
-          amount: existingPayment.amount,
-          currency: existingPayment.currency,
+          razorpayOrderId: razorpayOrder.id,
+          amount: (razorpayOrder.amount as number) / 100,
+          currency: razorpayOrder.currency,
           key: razorpayConfig.key_id,
         },
       });
-    }
-
-    // Create Razorpay order
-    const razorpayOrder = await razorpayInstance.orders.create({
-      amount: Math.round(amount * 100), // Amount in paise
-      currency,
-      receipt: order.orderNumber,
-      notes: {
-        orderId: order._id.toString(),
-        userId: userId.toString(),
-      },
-    });
-
-    // Create or update payment record
-    let payment;
-    if (existingPayment) {
-      existingPayment.razorpayOrderId = razorpayOrder.id;
-      payment = await existingPayment.save();
-    } else {
-      payment = await Payment.create({
-        user: userId,
-        order: orderId,
-        amount,
-        currency,
-        razorpayOrderId: razorpayOrder.id,
-        paymentMethod: order.paymentType,
-        status: "pending",
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create Razorpay order",
+        error: error.message,
       });
-
-      // Update order with payment ID
-      await Order.findByIdAndUpdate(orderId, { paymentId: payment._id });
     }
-
-    return res.status(200).json({
-      success: true,
-      data: {
-        razorpayOrderId: razorpayOrder.id,
-        amount: razorpayOrder.amount / 100,
-        currency: razorpayOrder.currency,
-        key: razorpayConfig.key_id,
-      },
-    });
-  } catch (error: any) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to create Razorpay order",
-      error: error.message,
-    });
   }
-};
+);
 
 /**
  * Verify Razorpay payment
  * @route POST /api/payments/verify
  * @access Private
  */
-export const verifyPayment = async (req: Request, res: Response) => {
+export const verifyPayment = catchAsync(async (req: Request, res: Response) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const {
-      razorpayOrderId,
-      razorpayPaymentId,
-      razorpaySignature,
-    } = req.body;
+    const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
 
     // Verify signature
     const generatedSignature = crypto
@@ -145,12 +145,12 @@ export const verifyPayment = async (req: Request, res: Response) => {
     const order = await Order.findById(payment.order).session(session);
     if (order) {
       order.paymentStatus = "captured";
-      
+
       // If order was pending, update to confirmed
       if (order.orderStatus === "pending") {
         order.orderStatus = "confirmed";
       }
-      
+
       await order.save({ session });
 
       // Update delivery tracking
@@ -193,14 +193,14 @@ export const verifyPayment = async (req: Request, res: Response) => {
       error: error.message,
     });
   }
-};
+});
 
 /**
  * Process refund
  * @route POST /api/payments/:id/refund
  * @access Private (Admin)
  */
-export const processRefund = async (req: Request, res: Response) => {
+export const processRefund = catchAsync(async (req: Request, res: Response) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -286,106 +286,108 @@ export const processRefund = async (req: Request, res: Response) => {
       error: error.message,
     });
   }
-};
+});
 
 /**
  * Razorpay webhook handler
  * @route POST /api/payments/webhook
  * @access Public
  */
-export const webhookHandler = async (req: Request, res: Response) => {
-  try {
-    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
-    
-    // Verify webhook signature if secret is set
-    if (webhookSecret) {
-      const webhookSignature = req.headers["x-razorpay-signature"] as string;
-      
-      if (!webhookSignature) {
-        return res.status(400).json({
-          success: false,
-          message: "Webhook signature missing",
-        });
+export const webhookHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    try {
+      const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+
+      // Verify webhook signature if secret is set
+      if (webhookSecret) {
+        const webhookSignature = req.headers["x-razorpay-signature"] as string;
+
+        if (!webhookSignature) {
+          return res.status(400).json({
+            success: false,
+            message: "Webhook signature missing",
+          });
+        }
+
+        const generatedSignature = crypto
+          .createHmac("sha256", webhookSecret)
+          .update(JSON.stringify(req.body))
+          .digest("hex");
+
+        if (generatedSignature !== webhookSignature) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid webhook signature",
+          });
+        }
       }
-      
-      const generatedSignature = crypto
-        .createHmac("sha256", webhookSecret)
-        .update(JSON.stringify(req.body))
-        .digest("hex");
-        
-      if (generatedSignature !== webhookSignature) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid webhook signature",
-        });
+
+      const event = req.body.event;
+      const payload = req.body.payload;
+
+      // Handle different webhook events
+      switch (event) {
+        case "payment.authorized":
+          await handlePaymentAuthorized(payload);
+          break;
+
+        case "payment.captured":
+          await handlePaymentCaptured(payload);
+          break;
+
+        case "payment.failed":
+          await handlePaymentFailed(payload);
+          break;
+
+        case "refund.processed":
+          await handleRefundProcessed(payload);
+          break;
+
+        default:
+          console.log(`Unhandled webhook event: ${event}`);
       }
+
+      return res.status(200).json({
+        success: true,
+        message: "Webhook processed successfully",
+      });
+    } catch (error: any) {
+      console.error("Webhook error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to process webhook",
+        error: error.message,
+      });
     }
-    
-    const event = req.body.event;
-    const payload = req.body.payload;
-    
-    // Handle different webhook events
-    switch (event) {
-      case "payment.authorized":
-        await handlePaymentAuthorized(payload);
-        break;
-        
-      case "payment.captured":
-        await handlePaymentCaptured(payload);
-        break;
-        
-      case "payment.failed":
-        await handlePaymentFailed(payload);
-        break;
-        
-      case "refund.processed":
-        await handleRefundProcessed(payload);
-        break;
-        
-      default:
-        console.log(`Unhandled webhook event: ${event}`);
-    }
-    
-    return res.status(200).json({
-      success: true,
-      message: "Webhook processed successfully",
-    });
-  } catch (error: any) {
-    console.error("Webhook error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to process webhook",
-      error: error.message,
-    });
   }
-};
+);
 
 // Helper functions for webhook handler
 async function handlePaymentAuthorized(payload: any) {
   const session = await mongoose.startSession();
   session.startTransaction();
-  
+
   try {
     const { payment } = payload;
     const razorpayOrderId = payment.order_id;
-    
+
     // Find payment by Razorpay order ID
     const paymentRecord = await Payment.findOne({
       razorpayOrderId,
     }).session(session);
-    
+
     if (!paymentRecord) {
       await session.abortTransaction();
       session.endSession();
       return;
     }
-    
+
     // Update payment details
     paymentRecord.razorpayPaymentId = payment.id;
     paymentRecord.status = "authorized";
     paymentRecord.paymentResponse = payment;
     await paymentRecord.save({ session });
-    
+
     await session.commitTransaction();
     session.endSession();
   } catch (error) {
@@ -398,58 +400,58 @@ async function handlePaymentAuthorized(payload: any) {
 async function handlePaymentCaptured(payload: any) {
   const session = await mongoose.startSession();
   session.startTransaction();
-  
+
   try {
     const { payment } = payload;
     const razorpayPaymentId = payment.id;
-    
+
     // Find payment by Razorpay payment ID
     const paymentRecord = await Payment.findOne({
       razorpayPaymentId,
     }).session(session);
-    
+
     if (!paymentRecord) {
       await session.abortTransaction();
       session.endSession();
       return;
     }
-    
+
     // Update payment details
     paymentRecord.status = "captured";
     paymentRecord.paymentResponse = payment;
     await paymentRecord.save({ session });
-    
+
     // Update order payment status
     const order = await Order.findById(paymentRecord.order).session(session);
     if (order) {
       order.paymentStatus = "captured";
-      
+
       // If order was pending, update to confirmed
       if (order.orderStatus === "pending") {
         order.orderStatus = "confirmed";
       }
-      
+
       await order.save({ session });
-      
+
       // Update delivery tracking
       if (order.deliveryTrackingId) {
         const deliveryTracking = await DeliveryTracking.findById(
           order.deliveryTrackingId
         ).session(session);
-        
+
         if (deliveryTracking) {
           deliveryTracking.statusUpdates.push({
             status: "processing",
             timestamp: new Date(),
             description: "Payment received, order confirmed",
           });
-          
+
           deliveryTracking.currentStatus = "processing";
           await deliveryTracking.save({ session });
         }
       }
     }
-    
+
     await session.commitTransaction();
     session.endSession();
   } catch (error) {
@@ -462,35 +464,35 @@ async function handlePaymentCaptured(payload: any) {
 async function handlePaymentFailed(payload: any) {
   const session = await mongoose.startSession();
   session.startTransaction();
-  
+
   try {
     const { payment } = payload;
     const razorpayOrderId = payment.order_id;
-    
+
     // Find payment by Razorpay order ID
     const paymentRecord = await Payment.findOne({
       razorpayOrderId,
     }).session(session);
-    
+
     if (!paymentRecord) {
       await session.abortTransaction();
       session.endSession();
       return;
     }
-    
+
     // Update payment details
     paymentRecord.razorpayPaymentId = payment.id;
     paymentRecord.status = "failed";
     paymentRecord.paymentResponse = payment;
     await paymentRecord.save({ session });
-    
+
     // Update order payment status
     const order = await Order.findById(paymentRecord.order).session(session);
     if (order) {
       order.paymentStatus = "failed";
       await order.save({ session });
     }
-    
+
     await session.commitTransaction();
     session.endSession();
   } catch (error) {
@@ -503,42 +505,44 @@ async function handlePaymentFailed(payload: any) {
 async function handleRefundProcessed(payload: any) {
   const session = await mongoose.startSession();
   session.startTransaction();
-  
+
   try {
     const { refund } = payload;
     const razorpayPaymentId = refund.payment_id;
-    
+
     // Find payment by Razorpay payment ID
     const paymentRecord = await Payment.findOne({
       razorpayPaymentId,
     }).session(session);
-    
+
     if (!paymentRecord) {
       await session.abortTransaction();
       session.endSession();
       return;
     }
-    
+
     // Update payment with refund details
     const refundAmount = refund.amount / 100; // Convert from paise to rupees
-    
+
     paymentRecord.refundAmount = refundAmount;
     paymentRecord.refundId = refund.id;
     paymentRecord.refundStatus = refund.status;
     paymentRecord.refundedAt = new Date();
     paymentRecord.status =
       refundAmount === paymentRecord.amount ? "refunded" : "partially_refunded";
-      
+
     await paymentRecord.save({ session });
-    
+
     // Update order payment status
     const order = await Order.findById(paymentRecord.order).session(session);
     if (order) {
       order.paymentStatus =
-        refundAmount === paymentRecord.amount ? "refunded" : "partially_refunded";
+        refundAmount === paymentRecord.amount
+          ? "refunded"
+          : "partially_refunded";
       await order.save({ session });
     }
-    
+
     await session.commitTransaction();
     session.endSession();
   } catch (error) {
