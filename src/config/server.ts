@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import path from "path";
 import { errorHandler } from "../middlewares/errorHandler";
 import { morganStream } from "../utils/logger";
 
@@ -23,6 +24,9 @@ export const configureServer = (): Application => {
 
   // Logging middleware
   app.use(morgan("combined", { stream: morganStream }));
+
+  // Serve static files
+  app.use("/static", express.static(path.join(process.cwd(), "public/static")));
 
   // Health check endpoint
   app.get("/health", (req: Request, res: Response) => {
