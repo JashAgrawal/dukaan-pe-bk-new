@@ -11,7 +11,7 @@ import {
 } from "../controllers/addressController";
 import { protect, restrictTo } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validationMiddleware";
-import { addressSchema } from "@/validators/addressValidators";
+import { addressSchema } from "../validators/addressValidators";
 
 const router = Router();
 
