@@ -66,3 +66,6 @@ export const restrictTo = (...roles: string[]) => {
     next();
   };
 };
+
+// Alias for protect middleware to maintain compatibility with different import styles
+export const authMiddleware = protect;

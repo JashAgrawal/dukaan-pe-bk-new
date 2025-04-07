@@ -1,47 +1,31 @@
-offer management apis
+now use razorpay for payment processing and implement and robust payment and order management system .
+create an snapshot of cart and store it when new order is created .
 
-storeId, discountAmt,discountPercentage , type:amount|percentage, maxDiscount, isActive, products , isDeleted
-such that each product can only be in one offer at a time .
-per store only 2 offer can be active at a time .
-
-coupon management apis
-storeId, code, discountAmt, discountPercentage , type:amount|percentage, maxDiscount, isActive, products , isDeleted
-
-implement cart management apis
-
-my proposed
+order model acc to would have
+cartSnapshotId
 userid
 storeid
-items :{
-type: [
-{
-product_id: Product,
-quantity: { type: Number, default: 1 },
-variant: variant
-size: sizeVariant,
-(details auto calculated because it can be changed)
-effectivePrice: Number,
-price: Number,
-discountAmt: Number,
-discountPercentage: Number,
-couponDiscount: Number,
-couponDiscountPercentage: Number,
-offerDiscount: Number,
-offerDiscountPercentage: Number,
-},
-],
-}
-,
-coupon,
-offer,
-isactive,
-state:"active"|"buy-now"|"pending"|"consumed"|"cancelled"
-isdeleted
+payment type  
+payment status
+payment id
+totalwithoutDiscount
+totalPayableAmount
+totalDiscount
+couponDiscount
+offerDiscount
+coupon
+offer
+deliveryCharges
+deliveryTrackingId
+orderStatus
+specialNoteBuyer
+specialNoteSeller
+deliveryAddressId
+isActive
 
-with apis addItemToCart,removeItemFromCart,updateProductQuantity,clearCart, applyCoupon, applyOffer,removeCoupon,removeOffer
+and another model for delivery tracking details
+and one for payments
+also implement partial cancellation and refund system
+with an great payout system . which tracks payout as an whole and also as an individual order
 
-also in all products and store api if the role of the user is buyer
-then if its storelisting api i need an key with inWishlist
-
-and if its in product listing api
-i need 2 addtional keys inWishlist and quantityInCart
+feel free to make any changes you like to the proposed schema just make sure everything is covered and implemented in best way possible.

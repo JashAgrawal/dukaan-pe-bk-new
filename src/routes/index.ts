@@ -15,6 +15,11 @@ import catalogueProductRoutes from "./catalogueProductRoutes";
 import offerRoutes from "./offerRoutes";
 import couponRoutes from "./couponRoutes";
 import cartRoutes from "./cartRoutes";
+import orderRoutes from "./orderRoutes";
+import paymentRoutes from "./paymentRoutes";
+import deliveryTrackingRoutes from "./deliveryTrackingRoutes";
+import payoutRoutes from "./payoutRoutes";
+import storePayoutRoutes from "./storePayoutRoutes";
 
 const router = Router();
 
@@ -35,5 +40,10 @@ router.use("/catalogue-products", catalogueProductRoutes);
 router.use("/offers", offerRoutes);
 router.use("/coupons", couponRoutes);
 router.use("/cart", cartRoutes);
+router.use("/orders", orderRoutes);
+router.use("/payments", paymentRoutes);
+router.use("/delivery-tracking", deliveryTrackingRoutes);
+router.use("/payouts", payoutRoutes);
+router.use("/store-payouts", storePayoutRoutes);
 
 export default router;
