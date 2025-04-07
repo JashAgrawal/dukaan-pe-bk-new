@@ -1,46 +1,45 @@
-product type manage apis
-physical, digital, appointment .
+offer management apis
 
-productReview apis
+storeId, discountAmt,discountPercentage , type:amount|percentage, maxDiscount, isActive, products , isDeleted
+such that each product can only be in one offer at a time .
+per store only 2 offer can be active at a time .
 
-productWishlist apis
+coupon management apis
+storeId, code, discountAmt, discountPercentage , type:amount|percentage, maxDiscount, isActive, products , isDeleted
 
-create products management apis
-with variants size and other variants inventory
-the feilds i know i will need is
-name
-description
-main image
-all images
-type
-price
-selling price
-discount amount
-discount perc
-size variants
-variants
-category=>productCategory
-store_id
-store
-popularity index
-order count
-review count
-average rating
-wishlist count
-inventory
-tags
-relatedCatalogueProductId
+implement cart management apis
 
-create catlogueproducts and its management apis
-same as product schema just without relatedCatalogueProductId
+my proposed
+userid
+storeid
+items :{
+type: [
+{
+product_id: Product,
+quantity: { type: Number, default: 1 },
+variant: variant
+size: sizeVariant,
+effectivePrice: Number,
+price: Number,
+discountAmt: Number,
+discountPercentage: Number,
+couponDiscount: Number,
+couponDiscountPercentage: Number,
+offerDiscount: Number,
+offerDiscountPercentage: Number,
+},
+],
+}
+,
+coupon,
+offer,
+isactive,
+state:"active"|"buy-now"|"pending"|"consumed"|"cancelled"
+isdeleted
 
-i want all productsListing apis such that store_id will be commonfilter because user should only see the products of that store, order by every api should be by popularity index / ordercount whatever you seem fit .
+with apis addItemToCart,removeItemFromCart,updateProductQuantity,clearCart, applyCoupon, applyOffer,removeCoupon,removeOffer
 
-getTopSellingProducts
-getBestRatedProducts
-getProductsByProductCategory
-getProductByFavouriteCount
-searchStoreProductsApi
-
-//no store_id filter + but pincode filter is there so api such that only returns products matching the query of the only the stores which serve the pincode / panindia
-searchProductsOverall
+also in all products and store api if the role of the user is buyer
+then if its storelisting api i need an key with inWishlist
+and if its in product listing api
+i need 2 addtional keys inWishlist and quantityInCart

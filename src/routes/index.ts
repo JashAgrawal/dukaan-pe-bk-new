@@ -4,9 +4,14 @@ import addressRoutes from "./addressRoutes";
 import storeCategoryRoutes from "./storeCategoryRoutes";
 import productCategoryRoutes from "./productCategoryRoutes";
 import serviceTypeRoutes from "./serviceTypeRoutes";
+import productTypeRoutes from "./productTypeRoutes";
 import storeRoutes from "./storeRoutes";
 import storeReviewRoutes from "./storeReviewRoutes";
 import storeWishlistRoutes from "./storeWishlistRoutes";
+import productRoutes from "./productRoutes";
+import productReviewRoutes from "./productReviewRoutes";
+import productWishlistRoutes from "./productWishlistRoutes";
+import catalogueProductRoutes from "./catalogueProductRoutes";
 
 const router = Router();
 
@@ -16,8 +21,13 @@ router.use("/addresses", addressRoutes);
 router.use("/store-categories", storeCategoryRoutes);
 router.use("/product-categories", productCategoryRoutes);
 router.use("/service-types", serviceTypeRoutes);
+router.use("/product-types", productTypeRoutes);
 router.use("/stores", storeRoutes);
 router.use("/store-reviews", storeReviewRoutes);
 router.use("/store-wishlist", storeWishlistRoutes);
+router.use("/products", productRoutes);
+router.use("/product-reviews", productReviewRoutes);
+router.use("/product-wishlist", productWishlistRoutes);
+router.use("/catalogue-products", catalogueProductRoutes);
 
 export default router;
