@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import { Product } from "../models/Product";
 import { ProductCategory } from "../models/ProductCategory";
 import { Store } from "../models/Store";
+import { ProductWishlist } from "../models/ProductWishlist";
+import { Cart } from "../models/Cart";
 import { AppError, catchAsync } from "../middlewares/errorHandler";
 import mongoose from "mongoose";
 
@@ -87,6 +89,8 @@ export const getProducts = catchAsync(async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
   const skip = (page - 1) * limit;
+  const userId = (req as any).user?.id;
+  const userRole = (req as any).user?.role;
 
   const query = buildBaseQuery(req);
 
@@ -104,6 +108,60 @@ export const getProducts = catchAsync(async (req: Request, res: Response) => {
     });
 
   const total = await Product.countDocuments(query);
+
+  // If user is a buyer, add inWishlist and quantityInCart fields
+  if (userId && userRole === "user") {
+    const productIds = products.map((product) => product._id);
+
+    // Get wishlist information
+    const wishlistItems = await ProductWishlist.find({
+      user: userId,
+      product: { $in: productIds },
+      isDeleted: false,
+    });
+
+    const wishlistMap = new Map();
+    wishlistItems.forEach((item) => {
+      wishlistMap.set(item.product.toString(), true);
+    });
+
+    // Get cart information
+    const cart = await Cart.findOne({
+      user: userId,
+      state: "active",
+      isDeleted: false,
+    });
+
+    const cartMap = new Map();
+    if (cart) {
+      cart.items.forEach((item) => {
+        cartMap.set(item.product.toString(), item.quantity);
+      });
+    }
+
+    // Add fields to products
+    const productsWithInfo = products.map((product) => {
+      const productObj = product.toObject();
+      productObj.inWishlist = wishlistMap.has(
+        (product._id as mongoose.Types.ObjectId).toString()
+      );
+      productObj.quantityInCart =
+        cartMap.get((product._id as mongoose.Types.ObjectId).toString()) || 0;
+      return productObj;
+    });
+
+    return res.status(200).json({
+      status: "success",
+      results: productsWithInfo.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
+      data: { products: productsWithInfo },
+    });
+  }
 
   res.status(200).json({
     status: "success",
@@ -125,6 +183,9 @@ export const getProducts = catchAsync(async (req: Request, res: Response) => {
  */
 export const getProduct = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    const userId = (req as any).user?.id;
+    const userRole = (req as any).user?.role;
+
     const product = await Product.findById(req.params.id)
       .populate({
         path: "category",
@@ -141,6 +202,46 @@ export const getProduct = catchAsync(
 
     if (!product) {
       return next(new AppError("Product not found", 404));
+    }
+
+    // If user is a buyer, add inWishlist and quantityInCart fields
+    if (userId && userRole === "user") {
+      const productObj = product.toObject();
+
+      // Check if product is in wishlist
+      const wishlistItem = await ProductWishlist.findOne({
+        user: userId,
+        product: product._id,
+        isDeleted: false,
+      });
+
+      productObj.inWishlist = !!wishlistItem;
+
+      // Check if product is in cart and get quantity
+      const cart = await Cart.findOne({
+        user: userId,
+        state: "active",
+        isDeleted: false,
+      });
+
+      let quantityInCart = 0;
+      if (cart) {
+        const cartItem = cart.items.find(
+          (item) =>
+            item.product.toString() ===
+            (product._id as mongoose.Types.ObjectId).toString()
+        );
+        if (cartItem) {
+          quantityInCart = cartItem.quantity;
+        }
+      }
+
+      productObj.quantityInCart = quantityInCart;
+
+      return res.status(200).json({
+        status: "success",
+        data: { product: productObj },
+      });
     }
 
     res.status(200).json({
@@ -600,6 +701,8 @@ export const getStoreProducts = catchAsync(
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
+    const userId = (req as any).user?.id;
+    const userRole = (req as any).user?.role;
 
     // Check if store exists
     const store = await Store.findById(storeId);
@@ -617,6 +720,60 @@ export const getStoreProducts = catchAsync(
       });
 
     const total = await Product.countDocuments({ store_id: storeId });
+
+    // If user is a buyer, add inWishlist and quantityInCart fields
+    if (userId && userRole === "user") {
+      const productIds = products.map((product) => product._id);
+
+      // Get wishlist information
+      const wishlistItems = await ProductWishlist.find({
+        user: userId,
+        product: { $in: productIds },
+        isDeleted: false,
+      });
+
+      const wishlistMap = new Map();
+      wishlistItems.forEach((item) => {
+        wishlistMap.set(item.product.toString(), true);
+      });
+
+      // Get cart information
+      const cart = await Cart.findOne({
+        user: userId,
+        state: "active",
+        isDeleted: false,
+      });
+
+      const cartMap = new Map();
+      if (cart) {
+        cart.items.forEach((item) => {
+          cartMap.set(item.product.toString(), item.quantity);
+        });
+      }
+
+      // Add fields to products
+      const productsWithInfo = products.map((product) => {
+        const productObj = product.toObject();
+        productObj.inWishlist = wishlistMap.has(
+          (product._id as mongoose.Types.ObjectId).toString()
+        );
+        productObj.quantityInCart =
+          cartMap.get((product._id as mongoose.Types.ObjectId).toString()) || 0;
+        return productObj;
+      });
+
+      return res.status(200).json({
+        status: "success",
+        results: productsWithInfo.length,
+        pagination: {
+          total,
+          page,
+          pages: Math.ceil(total / limit),
+          limit,
+        },
+        data: { products: productsWithInfo },
+      });
+    }
 
     res.status(200).json({
       status: "success",

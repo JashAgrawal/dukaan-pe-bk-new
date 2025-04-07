@@ -14,6 +14,32 @@ A scalable MongoDB, Express, TypeScript backend application.
 - Logging system
 - Environment configuration
 
+## E-commerce Features
+
+### Offer Management
+
+- Store owners can create offers with percentage or amount-based discounts
+- Each product can only be in one offer at a time
+- Per store, only 2 offers can be active at a time
+
+### Coupon Management
+
+- Store owners can create coupons with unique codes
+- Coupons can provide percentage or amount-based discounts
+- Coupons can be applied to specific products or the entire store
+
+### Cart Management
+
+- Users can add products to their cart
+- Apply coupons and offers to get discounts
+- Cart items include detailed price breakdown (original price, discounts, effective price)
+- Cart state management (active, buy-now, pending, consumed, cancelled)
+
+### Enhanced Product and Store APIs
+
+- Product listing APIs include `inWishlist` and `quantityInCart` fields for buyers
+- Store listing APIs include `inWishlist` field for buyers
+
 ## Project Structure
 
 ```
@@ -73,6 +99,37 @@ backend/
 - `POST /api/auth/register` - Register a new user
 - `POST /api/auth/login` - Login a user
 - `GET /api/auth/me` - Get current user profile (protected)
+
+### Offer Management
+
+- `POST /api/offers` - Create a new offer (protected, store owner only)
+- `GET /api/offers` - Get all offers for a store (protected, store owner only)
+- `GET /api/offers/:id` - Get a single offer (protected, store owner only)
+- `PATCH /api/offers/:id` - Update an offer (protected, store owner only)
+- `DELETE /api/offers/:id` - Delete an offer (protected, store owner only)
+
+### Coupon Management
+
+- `POST /api/coupons` - Create a new coupon (protected, store owner only)
+- `GET /api/coupons` - Get all coupons for a store (protected, store owner only)
+- `GET /api/coupons/:id` - Get a single coupon (protected, store owner only)
+- `PATCH /api/coupons/:id` - Update a coupon (protected, store owner only)
+- `DELETE /api/coupons/:id` - Delete a coupon (protected, store owner only)
+- `GET /api/coupons/validate/:code` - Validate a coupon code (public)
+
+### Cart Management
+
+- `POST /api/cart/add-item` - Add item to cart (protected)
+- `DELETE /api/cart/remove-item/:productId` - Remove item from cart (protected)
+- `PATCH /api/cart/update-quantity/:productId` - Update product quantity in cart (protected)
+- `DELETE /api/cart/clear` - Clear cart (protected)
+- `POST /api/cart/apply-coupon` - Apply coupon to cart (protected)
+- `POST /api/cart/apply-offer` - Apply offer to cart (protected)
+- `DELETE /api/cart/remove-coupon` - Remove coupon from cart (protected)
+- `DELETE /api/cart/remove-offer` - Remove offer from cart (protected)
+- `GET /api/cart` - Get user's cart (protected)
+- `GET /api/cart/count` - Get cart item count (protected)
+- `GET /api/cart/check/:productId` - Check if product is in cart and get quantity (protected)
 
 ## License
 

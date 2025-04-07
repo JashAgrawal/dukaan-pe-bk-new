@@ -12,6 +12,9 @@ import productRoutes from "./productRoutes";
 import productReviewRoutes from "./productReviewRoutes";
 import productWishlistRoutes from "./productWishlistRoutes";
 import catalogueProductRoutes from "./catalogueProductRoutes";
+import offerRoutes from "./offerRoutes";
+import couponRoutes from "./couponRoutes";
+import cartRoutes from "./cartRoutes";
 
 const router = Router();
 
@@ -29,5 +32,8 @@ router.use("/products", productRoutes);
 router.use("/product-reviews", productReviewRoutes);
 router.use("/product-wishlist", productWishlistRoutes);
 router.use("/catalogue-products", catalogueProductRoutes);
+router.use("/offers", offerRoutes);
+router.use("/coupons", couponRoutes);
+router.use("/cart", cartRoutes);
 
 export default router;

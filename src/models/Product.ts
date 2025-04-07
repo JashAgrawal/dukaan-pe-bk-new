@@ -47,6 +47,9 @@ export interface IProduct extends Document {
   deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  // Virtual properties (not stored in database)
+  inWishlist?: boolean;
+  quantityInCart?: number;
 }
 
 const productSchema = new Schema<IProduct>(
@@ -222,7 +225,9 @@ productSchema.pre(/^find/, function (this: any) {
 productSchema.pre("save", function (next) {
   if (this.price > this.sellingPrice) {
     this.discountAmount = this.price - this.sellingPrice;
-    this.discountPercentage = Math.round((this.discountAmount / this.price) * 100);
+    this.discountPercentage = Math.round(
+      (this.discountAmount / this.price) * 100
+    );
   } else {
     this.discountAmount = 0;
     this.discountPercentage = 0;

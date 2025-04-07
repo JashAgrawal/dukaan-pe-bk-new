@@ -39,6 +39,8 @@ export interface IStore extends Document {
   deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  // Virtual properties (not stored in database)
+  inWishlist?: boolean;
 }
 
 const storeSchema = new Schema<IStore>(

@@ -19,6 +19,7 @@ product_id: Product,
 quantity: { type: Number, default: 1 },
 variant: variant
 size: sizeVariant,
+(details auto calculated because it can be changed)
 effectivePrice: Number,
 price: Number,
 discountAmt: Number,
@@ -41,5 +42,6 @@ with apis addItemToCart,removeItemFromCart,updateProductQuantity,clearCart, appl
 
 also in all products and store api if the role of the user is buyer
 then if its storelisting api i need an key with inWishlist
+
 and if its in product listing api
 i need 2 addtional keys inWishlist and quantityInCart
