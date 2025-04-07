@@ -10,9 +10,9 @@ import {
 } from "../controllers/storeReviewController";
 import { protect, restrictTo } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validationMiddleware";
-import { 
-  storeReviewSchema, 
-  storeReviewUpdateSchema 
+import {
+  storeReviewSchema,
+  storeReviewUpdateSchema,
 } from "../validators/storeReviewValidators";
 
 const router = Router();
@@ -25,9 +25,14 @@ router.get("/:id", getStoreReview);
 router.use(protect);
 
 router.post("/", validateRequest(storeReviewSchema), createStoreReview);
-router.patch("/:id", validateRequest(storeReviewUpdateSchema), updateStoreReview);
+router.patch(
+  "/:id",
+  validateRequest(storeReviewUpdateSchema),
+  updateStoreReview
+);
 router.delete("/:id", deleteStoreReview);
-router.get("/user/:userId?", getUserReviews);
+router.get("/user", getUserReviews);
+router.get("/user/:userId", getUserReviews);
 
 // Admin only routes
 router.patch("/:id/restore", restrictTo("admin"), restoreStoreReview);

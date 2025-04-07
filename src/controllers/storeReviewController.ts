@@ -26,9 +26,7 @@ export const createStoreReview = catchAsync(
     });
 
     if (existingReview) {
-      return next(
-        new AppError("You have already reviewed this store", 400)
-      );
+      return next(new AppError("You have already reviewed this store", 400));
     }
 
     // Create review
@@ -115,9 +113,7 @@ export const updateStoreReview = catchAsync(
 
     // Check if user is the owner of the review
     if (review.user.toString() !== userId) {
-      return next(
-        new AppError("You can only update your own reviews", 403)
-      );
+      return next(new AppError("You can only update your own reviews", 403));
     }
 
     // Update review
@@ -150,9 +146,7 @@ export const deleteStoreReview = catchAsync(
 
     // Check if user is the owner of the review or an admin
     if (review.user.toString() !== userId && !isAdmin) {
-      return next(
-        new AppError("You can only delete your own reviews", 403)
-      );
+      return next(new AppError("You can only delete your own reviews", 403));
     }
 
     // Soft delete
@@ -169,20 +163,20 @@ export const deleteStoreReview = catchAsync(
 
 /**
  * Get all reviews by a user
- * @route GET /api/users/:userId/reviews
+ * @route GET /api/store-reviews/user
+ * @route GET /api/store-reviews/user/:userId
  * @access Private
  */
 export const getUserReviews = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    // If userId is provided in params, use it, otherwise use the current user's id
     const userId = req.params.userId || (req as any).user.id;
     const isOwnProfile = userId === (req as any).user.id;
     const isAdmin = (req as any).user.role === "admin";
 
     // Only allow users to see their own reviews or admins to see any user's reviews
     if (!isOwnProfile && !isAdmin) {
-      return next(
-        new AppError("You can only view your own reviews", 403)
-      );
+      return next(new AppError("You can only view your own reviews", 403));
     }
 
     const reviews = await StoreReview.find({ user: userId })
@@ -210,9 +204,7 @@ export const restoreStoreReview = catchAsync(
     const isAdmin = (req as any).user.role === "admin";
 
     if (!isAdmin) {
-      return next(
-        new AppError("Only admins can restore deleted reviews", 403)
-      );
+      return next(new AppError("Only admins can restore deleted reviews", 403));
     }
 
     const review = await StoreReview.findOne(

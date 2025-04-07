@@ -1,26 +1,46 @@
-create storeCategories management apis
-name, image, popularityIndex, noOfStores
+product type manage apis
+physical, digital, appointment .
 
-create productCategories management apis
-name, image, popularityIndex, noOfProducts
+productReview apis
 
-also serviceType apis
-physical Product, digital product, service, restaurant, infomercial
+productWishlist apis
 
-storeReview apis
+create products management apis
+with variants size and other variants inventory
+the feilds i know i will need is
+name
+description
+main image
+all images
+type
+price
+selling price
+discount amount
+discount perc
+size variants
+variants
+category=>productCategory
+store_id
+store
+popularity index
+order count
+review count
+average rating
+wishlist count
+inventory
+tags
+relatedCatalogueProductId
 
-storeWishlist apis
+create catlogueproducts and its management apis
+same as product schema just without relatedCatalogueProductId
 
-store management apis
-id, name, tagline, description, owner_id, business_phone_number, business_email, full_address, city, state, country ,servicible pincodes,isPanIndia, type:serviceType , category , productCategories, logo, coverImage, mainImage, allImages, popularity_index, isBrand, isOpen, opensAt, closesAt, is_24_7, orderCount
+i want all productsListing apis such that store_id will be commonfilter because user should only see the products of that store, order by every api should be by popularity index / ordercount whatever you seem fit .
 
-i want all storelisting apis related to stores such that pincode will be commonfilter because user should only see the stores which serve his pincode or if store is pan india servicable, if isBrand isPanIndia is mandatory, order by every api should be by popularity index / ordercount whatever you seem fit . also include an optional isBrandParameter to fetch only brands .
+getTopSellingProducts
+getBestRatedProducts
+getProductsByProductCategory
+getProductByFavouriteCount
+searchStoreProductsApi
 
-getTopSellingStores
-getBestRatedStores
-getNearByStores
-getStoresByCategory
-getStoresByProductCategory
-getStoresByServiceType
-getStoresByFavouriteCount
-searchStoresApi =>should search name, tagline, description, type, category, productCategories .
+//no store_id filter + but pincode filter is there so api such that only returns products matching the query of the only the stores which serve the pincode / panindia
+searchProductsOverall
