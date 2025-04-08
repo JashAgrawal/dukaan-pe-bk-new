@@ -71,8 +71,6 @@ userSchema.methods.generateOTP = function (): string {
   // Store the OTP
   this.otp = otp;
 
-  console.log(otp);
-
   return otp;
 };
 
@@ -97,6 +95,6 @@ userSchema.methods.generateAuthToken = function (): string {
 };
 
 // Create and export User model
-export const User = mongoose.model<IUser>("Users", userSchema);
+export const User = mongoose.model<IUser>("User", userSchema);
 
 export default User;

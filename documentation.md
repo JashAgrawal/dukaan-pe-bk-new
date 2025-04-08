@@ -2068,6 +2068,326 @@ Authorization: Bearer <token>
 }
 ```
 
+## Pincode Serviceability API
+
+This endpoint allows you to check if a pincode is serviceable by any store on the platform.
+
+### Check Pincode Serviceability
+
+```
+GET /api/pincode/is-serviceable
+```
+
+**Query Parameters:**
+
+- `pincode` (required): The 6-digit pincode to check
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "pincode": "400001",
+    "isServiceable": true,
+    "storeCount": 5,
+    "message": "This pincode is serviceable by 5 store(s)"
+  }
+}
+```
+
+If no stores service the pincode:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "pincode": "999999",
+    "isServiceable": false,
+    "storeCount": 0,
+    "message": "This pincode is not serviceable"
+  }
+}
+```
+
+## Catalogue Products API
+
+Catalogue Products are generalized product templates that are not specific to any store. They serve as a reference for store-specific products.
+
+### Get All Catalogue Products
+
+```
+GET /api/catalogue-products
+```
+
+**Query Parameters:**
+
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 2,
+  "pagination": {
+    "total": 20,
+    "page": 1,
+    "pages": 10,
+    "limit": 2
+  },
+  "data": {
+    "catalogueProducts": [
+      {
+        "_id": "60d21b4667d0d8992e610c85",
+        "name": "Smartphone X",
+        "description": "Latest smartphone with advanced features",
+        "mainImage": "https://example.com/smartphone.jpg",
+        "allImages": [
+          "https://example.com/smartphone1.jpg",
+          "https://example.com/smartphone2.jpg"
+        ],
+        "type": "physical",
+        "price": 50000,
+        "sellingPrice": 45000,
+        "discountAmount": 5000,
+        "discountPercentage": 10,
+        "sizeVariants": [],
+        "variants": [
+          {
+            "name": "Color",
+            "value": "Black",
+            "inventory": 50,
+            "sku": "SMRTX-BLK"
+          },
+          {
+            "name": "Color",
+            "value": "White",
+            "inventory": 30,
+            "sku": "SMRTX-WHT"
+          }
+        ],
+        "category": {
+          "_id": "60d21b4667d0d8992e610c85",
+          "name": "Electronics"
+        },
+        "popularityIndex": 85,
+        "orderCount": 120,
+        "reviewCount": 45,
+        "averageRating": 4.5,
+        "wishlistCount": 78,
+        "inventory": 80,
+        "tags": ["smartphone", "electronics", "mobile"],
+        "createdAt": "2023-01-01T12:00:00.000Z",
+        "updatedAt": "2023-01-01T12:00:00.000Z"
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c86",
+        "name": "Laptop Pro",
+        "description": "High-performance laptop for professionals",
+        "mainImage": "https://example.com/laptop.jpg",
+        "allImages": [
+          "https://example.com/laptop1.jpg",
+          "https://example.com/laptop2.jpg"
+        ],
+        "type": "physical",
+        "price": 80000,
+        "sellingPrice": 75000,
+        "discountAmount": 5000,
+        "discountPercentage": 6.25,
+        "sizeVariants": [],
+        "variants": [
+          {
+            "name": "Color",
+            "value": "Silver",
+            "inventory": 25,
+            "sku": "LPTP-SLV"
+          },
+          {
+            "name": "RAM",
+            "value": "16GB",
+            "inventory": 15,
+            "sku": "LPTP-16GB"
+          }
+        ],
+        "category": {
+          "_id": "60d21b4667d0d8992e610c85",
+          "name": "Electronics"
+        },
+        "popularityIndex": 90,
+        "orderCount": 80,
+        "reviewCount": 30,
+        "averageRating": 4.7,
+        "wishlistCount": 65,
+        "inventory": 40,
+        "tags": ["laptop", "electronics", "computer"],
+        "createdAt": "2023-01-02T12:00:00.000Z",
+        "updatedAt": "2023-01-02T12:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+### Get Single Catalogue Product
+
+```
+GET /api/catalogue-products/:id
+```
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "catalogueProduct": {
+      "_id": "60d21b4667d0d8992e610c85",
+      "name": "Smartphone X",
+      "description": "Latest smartphone with advanced features",
+      "mainImage": "https://example.com/smartphone.jpg",
+      "allImages": [
+        "https://example.com/smartphone1.jpg",
+        "https://example.com/smartphone2.jpg"
+      ],
+      "type": "physical",
+      "price": 50000,
+      "sellingPrice": 45000,
+      "discountAmount": 5000,
+      "discountPercentage": 10,
+      "sizeVariants": [],
+      "variants": [
+        {
+          "name": "Color",
+          "value": "Black",
+          "inventory": 50,
+          "sku": "SMRTX-BLK"
+        },
+        {
+          "name": "Color",
+          "value": "White",
+          "inventory": 30,
+          "sku": "SMRTX-WHT"
+        }
+      ],
+      "category": {
+        "_id": "60d21b4667d0d8992e610c85",
+        "name": "Electronics"
+      },
+      "popularityIndex": 85,
+      "orderCount": 120,
+      "reviewCount": 45,
+      "averageRating": 4.5,
+      "wishlistCount": 78,
+      "inventory": 80,
+      "tags": ["smartphone", "electronics", "mobile"],
+      "createdAt": "2023-01-01T12:00:00.000Z",
+      "updatedAt": "2023-01-01T12:00:00.000Z"
+    },
+    "relatedProducts": [
+      {
+        "_id": "60d21b4667d0d8992e610c87",
+        "name": "Smartphone X",
+        "mainImage": "https://example.com/smartphone.jpg",
+        "price": 50000,
+        "sellingPrice": 45000,
+        "store": {
+          "_id": "60d21b4667d0d8992e610c86",
+          "name": "Electronics Hub",
+          "logo": "https://example.com/logo2.jpg"
+        }
+      }
+    ]
+  }
+}
+```
+
+### Create Catalogue Product (Protected/Admin)
+
+```
+POST /api/catalogue-products
+```
+
+**Headers:**
+
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+
+```json
+{
+  "name": "New Catalogue Product",
+  "description": "Detailed product description",
+  "mainImage": "https://example.com/newproduct.jpg",
+  "allImages": [
+    "https://example.com/newproduct1.jpg",
+    "https://example.com/newproduct2.jpg"
+  ],
+  "type": "physical",
+  "price": 30000,
+  "sellingPrice": 27000,
+  "sizeVariants": [],
+  "variants": [
+    {
+      "name": "Color",
+      "value": "Red",
+      "inventory": 50,
+      "sku": "NCP-RED"
+    }
+  ],
+  "category": "60d21b4667d0d8992e610c85",
+  "inventory": 100,
+  "tags": ["new", "trending"]
+}
+```
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "catalogueProduct": {
+      "_id": "60d21b4667d0d8992e610c87",
+      "name": "New Catalogue Product",
+      "description": "Detailed product description",
+      "mainImage": "https://example.com/newproduct.jpg",
+      "allImages": [
+        "https://example.com/newproduct1.jpg",
+        "https://example.com/newproduct2.jpg"
+      ],
+      "type": "physical",
+      "price": 30000,
+      "sellingPrice": 27000,
+      "discountAmount": 3000,
+      "discountPercentage": 10,
+      "sizeVariants": [],
+      "variants": [
+        {
+          "name": "Color",
+          "value": "Red",
+          "inventory": 50,
+          "sku": "NCP-RED"
+        }
+      ],
+      "category": "60d21b4667d0d8992e610c85",
+      "popularityIndex": 0,
+      "orderCount": 0,
+      "reviewCount": 0,
+      "averageRating": 0,
+      "wishlistCount": 0,
+      "inventory": 100,
+      "tags": ["new", "trending"],
+      "createdAt": "2023-01-03T12:00:00.000Z",
+      "updatedAt": "2023-01-03T12:00:00.000Z"
+    }
+  }
+}
+```
+
 ## Conclusion
 
 This documentation covers the main API endpoints available in the Dukaan-Pe backend. For frontend developers, these endpoints provide all the necessary functionality to build a complete e-commerce application.
@@ -2078,9 +2398,11 @@ This documentation covers the main API endpoints available in the Dukaan-Pe back
 2. **Address APIs** - Manage user delivery addresses
 3. **Store APIs** - Browse, search, and manage stores
 4. **Product APIs** - Browse, search, and manage products
-5. **Cart APIs** - Manage shopping cart and apply discounts
-6. **Order APIs** - Create and manage orders
-7. **Payment APIs** - Process payments and refunds
+5. **Catalogue Products APIs** - Manage generalized product templates
+6. **Pincode Serviceability API** - Check if a pincode is serviceable
+7. **Cart APIs** - Manage shopping cart and apply discounts
+8. **Order APIs** - Create and manage orders
+9. **Payment APIs** - Process payments and refunds
 
 ### Common Response Formats
 

@@ -21,6 +21,7 @@ import deliveryTrackingRoutes from "./deliveryTrackingRoutes";
 import payoutRoutes from "./payoutRoutes";
 import storePayoutRoutes from "./storePayoutRoutes";
 import uploadRoutes from "./uploadRoutes";
+import pincodeRoutes from "./pincodeRoutes";
 
 const router = Router();
 
@@ -47,5 +48,6 @@ router.use("/delivery-tracking", deliveryTrackingRoutes);
 router.use("/payouts", payoutRoutes);
 router.use("/store-payouts", storePayoutRoutes);
 router.use("/upload", uploadRoutes);
+router.use("/pincode", pincodeRoutes);
 
 export default router;

@@ -29,7 +29,6 @@ export const requestOtp = catchAsync(
     // In a real application, send OTP via SMS
     // For now, just log it to console
     logger.info(`OTP for ${mobileNumber}: ${otp}`);
-    console.log(`OTP for ${mobileNumber}: ${otp}`);
 
     // Send response
     res.status(200).json({

@@ -33,8 +33,6 @@ export interface ICatalogueProduct extends Document {
   sizeVariants: ISizeVariant[];
   variants: IVariantOption[];
   category: Schema.Types.ObjectId;
-  store_id: Schema.Types.ObjectId;
-  store: Schema.Types.ObjectId;
   popularityIndex: number;
   orderCount: number;
   reviewCount: number;
@@ -150,16 +148,6 @@ const catalogueProductSchema = new Schema<ICatalogueProduct>(
       type: Schema.Types.ObjectId,
       ref: "ProductCategory",
       required: [true, "Product category is required"],
-    },
-    store_id: {
-      type: Schema.Types.ObjectId,
-      ref: "Store",
-      required: [true, "Store ID is required"],
-    },
-    store: {
-      type: Schema.Types.ObjectId,
-      ref: "Store",
-      required: [true, "Store is required"],
     },
     popularityIndex: {
       type: Number,
