@@ -2,17 +2,21 @@ import mongoose, { Document, Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { SignOptions } from "jsonwebtoken";
+import crypto from "crypto";
 
 // User interface
 export interface IUser extends Document {
   name: string;
-  email: string;
-  password: string;
+  mobileNumber: string;
   role: "user" | "admin" | "seller";
+  otp?: string;
+  otpExpiry?: Date;
+  requestId?: string;
   createdAt: Date;
   updatedAt: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>;
   generateAuthToken(): string;
+  generateOTP(): string;
+  verifyOTP(otp: string): boolean;
 }
 
 // User schema
@@ -20,30 +24,31 @@ const userSchema = new Schema<IUser>(
   {
     name: {
       type: String,
-      required: [true, "Please provide a name"],
       trim: true,
       maxlength: [50, "Name cannot be more than 50 characters"],
     },
-    email: {
+    mobileNumber: {
       type: String,
-      required: [true, "Please provide an email"],
+      required: [true, "Please provide a mobile number"],
       unique: true,
-      lowercase: true,
       trim: true,
-      match: [
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-        "Please provide a valid email",
-      ],
+      match: [/^\+?[1-9]\d{9,14}$/, "Please provide a valid mobile number"],
     },
-    password: {
+    otp: {
       type: String,
-      required: [true, "Please provide a password"],
-      minlength: [6, "Password must be at least 6 characters"],
-      select: false, // Don't return password by default
+      select: false, // Don't return OTP by default
+    },
+    otpExpiry: {
+      type: Date,
+      select: false, // Don't return OTP expiry by default
+    },
+    requestId: {
+      type: String,
+      select: false, // Don't return request ID by default
     },
     role: {
       type: String,
-      enum: ["user", "admin"],
+      enum: ["user", "admin", "seller"],
       default: "user",
     },
   },
@@ -52,27 +57,31 @@ const userSchema = new Schema<IUser>(
   }
 );
 
-// Hash password before saving
-userSchema.pre<IUser>("save", async function (next) {
-  // Only hash the password if it's modified (or new)
-  if (!this.isModified("password")) return next();
+// Generate OTP method
+userSchema.methods.generateOTP = function (): string {
+  // Generate a 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  try {
-    // Generate salt
-    const salt = await bcrypt.genSalt(10);
-    // Hash password
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error: any) {
-    next(error);
-  }
-});
+  // Set OTP expiry to 5 minutes from now
+  this.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
 
-// Compare password method
-userSchema.methods.comparePassword = async function (
-  candidatePassword: string
-): Promise<boolean> {
-  return await bcrypt.compare(candidatePassword, this.password);
+  // Generate a unique request ID
+  this.requestId = `otp_req_${crypto.randomBytes(12).toString("hex")}`;
+
+  // Store the OTP
+  this.otp = otp;
+
+  console.log(otp);
+
+  return otp;
+};
+
+// Verify OTP method
+userSchema.methods.verifyOTP = function (candidateOTP: string): boolean {
+  // Check if OTP is valid and not expired
+  return (
+    this.otp === candidateOTP && this.otpExpiry && new Date() < this.otpExpiry
+  );
 };
 
 // Generate JWT token
@@ -88,6 +97,6 @@ userSchema.methods.generateAuthToken = function (): string {
 };
 
 // Create and export User model
-export const User = mongoose.model<IUser>("User", userSchema);
+export const User = mongoose.model<IUser>("Users", userSchema);
 
 export default User;

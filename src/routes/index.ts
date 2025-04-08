@@ -20,6 +20,7 @@ import paymentRoutes from "./paymentRoutes";
 import deliveryTrackingRoutes from "./deliveryTrackingRoutes";
 import payoutRoutes from "./payoutRoutes";
 import storePayoutRoutes from "./storePayoutRoutes";
+import uploadRoutes from "./uploadRoutes";
 
 const router = Router();
 
@@ -45,5 +46,6 @@ router.use("/payments", paymentRoutes);
 router.use("/delivery-tracking", deliveryTrackingRoutes);
 router.use("/payouts", payoutRoutes);
 router.use("/store-payouts", storePayoutRoutes);
+router.use("/upload", uploadRoutes);
 
 export default router;

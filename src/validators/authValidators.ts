@@ -1,34 +1,53 @@
-import Joi from 'joi';
+import Joi from "joi";
 
-// Register validation schema
-export const registerSchema = Joi.object({
-  name: Joi.string().min(2).max(50).required()
+// Request OTP validation schema
+export const requestOtpSchema = Joi.object({
+  mobileNumber: Joi.string()
+    .pattern(/^\+?[1-9]\d{9,14}$/)
+    .required()
     .messages({
-      'string.empty': 'Name is required',
-      'string.min': 'Name must be at least 2 characters',
-      'string.max': 'Name cannot exceed 50 characters',
-    }),
-  email: Joi.string().email().required()
-    .messages({
-      'string.empty': 'Email is required',
-      'string.email': 'Please provide a valid email',
-    }),
-  password: Joi.string().min(6).required()
-    .messages({
-      'string.empty': 'Password is required',
-      'string.min': 'Password must be at least 6 characters',
+      "string.empty": "Mobile number is required",
+      "string.pattern.base": "Please provide a valid mobile number",
     }),
 });
 
-// Login validation schema
-export const loginSchema = Joi.object({
-  email: Joi.string().email().required()
+// Verify OTP validation schema
+export const verifyOtpSchema = Joi.object({
+  mobileNumber: Joi.string()
+    .pattern(/^\+?[1-9]\d{9,14}$/)
+    .required()
     .messages({
-      'string.empty': 'Email is required',
-      'string.email': 'Please provide a valid email',
+      "string.empty": "Mobile number is required",
+      "string.pattern.base": "Please provide a valid mobile number",
     }),
-  password: Joi.string().required()
+  otp: Joi.string()
+    .length(6)
+    .pattern(/^[0-9]+$/)
+    .required()
     .messages({
-      'string.empty': 'Password is required',
+      "string.empty": "OTP is required",
+      "string.length": "OTP must be 6 digits",
+      "string.pattern.base": "OTP must contain only numbers",
     }),
+  requestId: Joi.string().required().messages({
+    "string.empty": "Request ID is required",
+  }),
+  name: Joi.string().min(2).max(50).messages({
+    "string.min": "Name must be at least 2 characters",
+    "string.max": "Name cannot exceed 50 characters",
+  }),
+});
+
+// Resend OTP validation schema
+export const resendOtpSchema = Joi.object({
+  mobileNumber: Joi.string()
+    .pattern(/^\+?[1-9]\d{9,14}$/)
+    .required()
+    .messages({
+      "string.empty": "Mobile number is required",
+      "string.pattern.base": "Please provide a valid mobile number",
+    }),
+  requestId: Joi.string().required().messages({
+    "string.empty": "Request ID is required",
+  }),
 });
