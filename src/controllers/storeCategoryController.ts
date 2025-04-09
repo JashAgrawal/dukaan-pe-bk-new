@@ -26,11 +26,26 @@ export const createStoreCategory = catchAsync(
  */
 export const getStoreCategories = catchAsync(
   async (req: Request, res: Response) => {
-    const categories = await StoreCategory.find().sort({ popularityIndex: -1 });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20; // Higher default limit for categories
+    const skip = (page - 1) * limit;
+
+    const categories = await StoreCategory.find()
+      .sort({ popularityIndex: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await StoreCategory.countDocuments();
 
     res.status(200).json({
       status: "success",
       results: categories.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
       data: { categories },
     });
   }
@@ -97,9 +112,9 @@ export const deleteStoreCategory = catchAsync(
     }
 
     // Check if there are any stores using this category
-    const storeCount = await Store.countDocuments({ 
+    const storeCount = await Store.countDocuments({
       category: req.params.id,
-      isDeleted: false
+      isDeleted: false,
     });
 
     if (storeCount > 0) {

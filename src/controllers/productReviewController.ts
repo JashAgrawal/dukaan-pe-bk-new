@@ -26,9 +26,7 @@ export const createProductReview = catchAsync(
     });
 
     if (existingReview) {
-      return next(
-        new AppError("You have already reviewed this product", 400)
-      );
+      return next(new AppError("You have already reviewed this product", 400));
     }
 
     // Create review
@@ -52,6 +50,9 @@ export const createProductReview = catchAsync(
 export const getProductReviews = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const productId = req.params.productId;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
 
     // Check if product exists
     const product = await Product.findById(productId);
@@ -59,16 +60,32 @@ export const getProductReviews = catchAsync(
       return next(new AppError("Product not found", 404));
     }
 
-    const reviews = await ProductReview.find({ product: productId })
+    const reviews = await ProductReview.find({
+      product: productId,
+      isDeleted: false,
+    })
       .populate({
         path: "user",
         select: "name",
       })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await ProductReview.countDocuments({
+      product: productId,
+      isDeleted: false,
+    });
 
     res.status(200).json({
       status: "success",
       results: reviews.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
       data: { reviews },
     });
   }
@@ -115,9 +132,7 @@ export const updateProductReview = catchAsync(
 
     // Check if user is the owner of the review
     if (review.user.toString() !== userId) {
-      return next(
-        new AppError("You can only update your own reviews", 403)
-      );
+      return next(new AppError("You can only update your own reviews", 403));
     }
 
     // Update review
@@ -150,9 +165,7 @@ export const deleteProductReview = catchAsync(
 
     // Check if user is the owner of the review or an admin
     if (review.user.toString() !== userId && !isAdmin) {
-      return next(
-        new AppError("You can only delete your own reviews", 403)
-      );
+      return next(new AppError("You can only delete your own reviews", 403));
     }
 
     // Soft delete
@@ -178,24 +191,38 @@ export const getUserProductReviews = catchAsync(
     const userId = req.params.userId || (req as any).user.id;
     const isOwnProfile = userId === (req as any).user.id;
     const isAdmin = (req as any).user.role === "admin";
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
 
     // Only allow users to see their own reviews or admins to see any user's reviews
     if (!isOwnProfile && !isAdmin) {
-      return next(
-        new AppError("You can only view your own reviews", 403)
-      );
+      return next(new AppError("You can only view your own reviews", 403));
     }
 
-    const reviews = await ProductReview.find({ user: userId })
+    const reviews = await ProductReview.find({ user: userId, isDeleted: false })
       .populate({
         path: "product",
         select: "name mainImage",
       })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await ProductReview.countDocuments({
+      user: userId,
+      isDeleted: false,
+    });
 
     res.status(200).json({
       status: "success",
       results: reviews.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
       data: { reviews },
     });
   }
@@ -211,9 +238,7 @@ export const restoreProductReview = catchAsync(
     const isAdmin = (req as any).user.role === "admin";
 
     if (!isAdmin) {
-      return next(
-        new AppError("Only admins can restore deleted reviews", 403)
-      );
+      return next(new AppError("Only admins can restore deleted reviews", 403));
     }
 
     const review = await ProductReview.findOne(

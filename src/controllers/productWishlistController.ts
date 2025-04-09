@@ -38,9 +38,7 @@ export const addToWishlist = catchAsync(
         });
       }
 
-      return next(
-        new AppError("Product is already in your wishlist", 400)
-      );
+      return next(new AppError("Product is already in your wishlist", 400));
     }
 
     // Add to wishlist
@@ -95,17 +93,37 @@ export const removeFromWishlist = catchAsync(
  */
 export const getWishlist = catchAsync(async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
 
-  const wishlist = await ProductWishlist.find({ user: userId })
+  const wishlist = await ProductWishlist.find({
+    user: userId,
+    isDeleted: false,
+  })
     .populate({
       path: "product",
-      select: "name mainImage price sellingPrice discountPercentage averageRating reviewCount",
+      select:
+        "name mainImage price sellingPrice discountPercentage averageRating reviewCount",
     })
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+  const total = await ProductWishlist.countDocuments({
+    user: userId,
+    isDeleted: false,
+  });
 
   res.status(200).json({
     status: "success",
     results: wishlist.length,
+    pagination: {
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      limit,
+    },
     data: { wishlist },
   });
 });
@@ -148,12 +166,14 @@ export const checkWishlist = catchAsync(
  */
 export const getPopularWishlistedProducts = catchAsync(
   async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
     const storeId = req.query.store_id as string;
 
     // Build query
     let query: any = {};
-    
+
     // Filter by store if provided
     if (storeId) {
       query.store_id = storeId;
@@ -161,12 +181,23 @@ export const getPopularWishlistedProducts = catchAsync(
 
     const products = await Product.find(query)
       .sort({ wishlistCount: -1, popularityIndex: -1 })
+      .skip(skip)
       .limit(limit)
-      .select("name mainImage price sellingPrice discountPercentage averageRating reviewCount wishlistCount");
+      .select(
+        "name mainImage price sellingPrice discountPercentage averageRating reviewCount wishlistCount"
+      );
+
+    const total = await Product.countDocuments(query);
 
     res.status(200).json({
       status: "success",
       results: products.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
       data: { products },
     });
   }

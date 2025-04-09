@@ -415,11 +415,14 @@ export const restoreProduct = catchAsync(
  */
 export const getTopSellingProducts = catchAsync(
   async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
     const query = buildBaseQuery(req);
 
     const products = await Product.find(query)
       .sort({ orderCount: -1, popularityIndex: -1 })
+      .skip(skip)
       .limit(limit)
       .populate({
         path: "category",
@@ -430,9 +433,17 @@ export const getTopSellingProducts = catchAsync(
         select: "name logo",
       });
 
+    const total = await Product.countDocuments(query);
+
     res.status(200).json({
       status: "success",
       results: products.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
       data: { products },
     });
   }
@@ -531,11 +542,14 @@ export const getProductsByProductCategory = catchAsync(
  */
 export const getProductsByFavouriteCount = catchAsync(
   async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
     const query = buildBaseQuery(req);
 
     const products = await Product.find(query)
       .sort({ wishlistCount: -1, popularityIndex: -1 })
+      .skip(skip)
       .limit(limit)
       .populate({
         path: "category",
@@ -546,9 +560,17 @@ export const getProductsByFavouriteCount = catchAsync(
         select: "name logo",
       });
 
+    const total = await Product.countDocuments(query);
+
     res.status(200).json({
       status: "success",
       results: products.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
       data: { products },
     });
   }

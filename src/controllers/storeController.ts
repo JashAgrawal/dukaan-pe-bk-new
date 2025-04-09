@@ -341,20 +341,31 @@ export const restoreStore = catchAsync(
  */
 export const getTopSellingStores = catchAsync(
   async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
     const query = buildBaseQuery(req);
 
     const stores = await Store.find(query)
       .sort({ orderCount: -1, popularity_index: -1 })
+      .skip(skip)
       .limit(limit)
       .populate({
         path: "category",
         select: "name",
       });
 
+    const total = await Store.countDocuments(query);
+
     res.status(200).json({
       status: "success",
       results: stores.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
       data: { stores },
     });
   }
@@ -600,20 +611,31 @@ export const getStoresByServiceType = catchAsync(
  */
 export const getStoresByFavouriteCount = catchAsync(
   async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
     const query = buildBaseQuery(req);
 
     const stores = await Store.find(query)
       .sort({ wishlistCount: -1, popularity_index: -1 })
+      .skip(skip)
       .limit(limit)
       .populate({
         path: "category",
         select: "name",
       });
 
+    const total = await Store.countDocuments(query);
+
     res.status(200).json({
       status: "success",
       results: stores.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
       data: { stores },
     });
   }
@@ -687,9 +709,14 @@ export const searchStores = catchAsync(async (req: Request, res: Response) => {
  */
 export const getMyStores = catchAsync(async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
 
   const stores = await Store.find({ owner_id: userId })
     .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
     .populate({
       path: "category",
       select: "name",
@@ -699,9 +726,17 @@ export const getMyStores = catchAsync(async (req: Request, res: Response) => {
       select: "name",
     });
 
+  const total = await Store.countDocuments({ owner_id: userId });
+
   res.status(200).json({
     status: "success",
     results: stores.length,
+    pagination: {
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      limit,
+    },
     data: { stores },
   });
 });

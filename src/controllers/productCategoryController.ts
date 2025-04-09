@@ -26,11 +26,26 @@ export const createProductCategory = catchAsync(
  */
 export const getProductCategories = catchAsync(
   async (req: Request, res: Response) => {
-    const categories = await ProductCategory.find().sort({ popularityIndex: -1 });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20; // Higher default limit for categories
+    const skip = (page - 1) * limit;
+
+    const categories = await ProductCategory.find()
+      .sort({ popularityIndex: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await ProductCategory.countDocuments();
 
     res.status(200).json({
       status: "success",
       results: categories.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
       data: { categories },
     });
   }
@@ -97,9 +112,9 @@ export const deleteProductCategory = catchAsync(
     }
 
     // Check if there are any stores using this product category
-    const storeCount = await Store.countDocuments({ 
+    const storeCount = await Store.countDocuments({
       productCategories: req.params.id,
-      isDeleted: false
+      isDeleted: false,
     });
 
     if (storeCount > 0) {
@@ -162,7 +177,7 @@ export const updateProductCounts = catchAsync(
     // This is a placeholder. In a real application, you would count products
     // from a Product model that references these categories.
     // For now, we'll just update based on stores that use these categories.
-    
+
     const categories = await ProductCategory.find();
 
     for (const category of categories) {

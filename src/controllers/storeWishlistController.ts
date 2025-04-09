@@ -38,9 +38,7 @@ export const addToWishlist = catchAsync(
         });
       }
 
-      return next(
-        new AppError("Store is already in your wishlist", 400)
-      );
+      return next(new AppError("Store is already in your wishlist", 400));
     }
 
     // Add to wishlist
@@ -95,17 +93,33 @@ export const removeFromWishlist = catchAsync(
  */
 export const getWishlist = catchAsync(async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
 
-  const wishlist = await StoreWishlist.find({ user: userId })
+  const wishlist = await StoreWishlist.find({ user: userId, isDeleted: false })
     .populate({
       path: "store",
       select: "name logo mainImage tagline averageRating reviewCount",
     })
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+  const total = await StoreWishlist.countDocuments({
+    user: userId,
+    isDeleted: false,
+  });
 
   res.status(200).json({
     status: "success",
     results: wishlist.length,
+    pagination: {
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      limit,
+    },
     data: { wishlist },
   });
 });
@@ -148,21 +162,20 @@ export const checkWishlist = catchAsync(
  */
 export const getPopularWishlistedStores = catchAsync(
   async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
     const pincode = req.query.pincode as string;
     const isBrand = req.query.isBrand === "true";
 
     // Build query
     let query: any = {};
-    
+
     // Filter by pincode if provided
     if (pincode) {
-      query.$or = [
-        { serviceable_pincodes: pincode },
-        { isPanIndia: true }
-      ];
+      query.$or = [{ serviceable_pincodes: pincode }, { isPanIndia: true }];
     }
-    
+
     // Filter by brand if requested
     if (isBrand) {
       query.isBrand = true;
@@ -170,12 +183,23 @@ export const getPopularWishlistedStores = catchAsync(
 
     const stores = await Store.find(query)
       .sort({ wishlistCount: -1, popularity_index: -1 })
+      .skip(skip)
       .limit(limit)
-      .select("name logo mainImage tagline averageRating reviewCount wishlistCount");
+      .select(
+        "name logo mainImage tagline averageRating reviewCount wishlistCount"
+      );
+
+    const total = await Store.countDocuments(query);
 
     res.status(200).json({
       status: "success",
       results: stores.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
       data: { stores },
     });
   }
