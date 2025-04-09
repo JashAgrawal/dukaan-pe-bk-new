@@ -788,7 +788,8 @@ GET /api/stores/top-selling
 
 **Query Parameters:**
 
-- `limit` (optional): Number of results (default: 10)
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
 
 **Response:**
 
@@ -827,7 +828,8 @@ GET /api/stores/best-rated
 
 **Query Parameters:**
 
-- `limit` (optional): Number of results (default: 10)
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
 
 **Response:**
 
@@ -1287,7 +1289,8 @@ GET /api/products/top-selling
 
 **Query Parameters:**
 
-- `limit` (optional): Number of results (default: 10)
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
 
 **Response:**
 
@@ -1334,7 +1337,8 @@ GET /api/products/best-rated
 
 **Query Parameters:**
 
-- `limit` (optional): Number of results (default: 10)
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
 
 **Response:**
 
@@ -2388,6 +2392,471 @@ Authorization: Bearer <token>
 }
 ```
 
+## Product Categories API
+
+These endpoints allow users to interact with product categories on the platform.
+
+### Get All Product Categories
+
+```
+GET /api/product-categories
+```
+
+**Query Parameters:**
+
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 20)
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 5,
+  "pagination": {
+    "total": 15,
+    "page": 1,
+    "pages": 3,
+    "limit": 5
+  },
+  "data": {
+    "categories": [
+      {
+        "_id": "60d21b4667d0d8992e610c85",
+        "name": "Electronics",
+        "image": "https://example.com/electronics.jpg",
+        "popularityIndex": 95,
+        "noOfProducts": 120,
+        "createdAt": "2023-01-01T12:00:00.000Z",
+        "updatedAt": "2023-01-01T12:00:00.000Z"
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c86",
+        "name": "Fashion",
+        "image": "https://example.com/fashion.jpg",
+        "popularityIndex": 90,
+        "noOfProducts": 200,
+        "createdAt": "2023-01-01T12:00:00.000Z",
+        "updatedAt": "2023-01-01T12:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+## Store Categories API
+
+These endpoints allow users to interact with store categories on the platform.
+
+### Get All Store Categories
+
+```
+GET /api/store-categories
+```
+
+**Query Parameters:**
+
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 20)
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 5,
+  "pagination": {
+    "total": 15,
+    "page": 1,
+    "pages": 3,
+    "limit": 5
+  },
+  "data": {
+    "categories": [
+      {
+        "_id": "60d21b4667d0d8992e610c85",
+        "name": "Electronics Stores",
+        "image": "https://example.com/electronics-stores.jpg",
+        "popularityIndex": 95,
+        "noOfStores": 50,
+        "createdAt": "2023-01-01T12:00:00.000Z",
+        "updatedAt": "2023-01-01T12:00:00.000Z"
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c86",
+        "name": "Fashion Stores",
+        "image": "https://example.com/fashion-stores.jpg",
+        "popularityIndex": 90,
+        "noOfStores": 80,
+        "createdAt": "2023-01-01T12:00:00.000Z",
+        "updatedAt": "2023-01-01T12:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+## Product Reviews API
+
+These endpoints allow users to interact with product reviews on the platform.
+
+### Get All Reviews for a Product
+
+```
+GET /api/products/:productId/reviews
+```
+
+**Query Parameters:**
+
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 2,
+  "pagination": {
+    "total": 45,
+    "page": 1,
+    "pages": 23,
+    "limit": 2
+  },
+  "data": {
+    "reviews": [
+      {
+        "_id": "60d21b4667d0d8992e610c90",
+        "user": {
+          "_id": "60d21b4667d0d8992e610c85",
+          "name": "John Doe"
+        },
+        "product": "60d21b4667d0d8992e610c85",
+        "rating": 5,
+        "title": "Great product!",
+        "comment": "This is an amazing product. Highly recommended!",
+        "createdAt": "2023-01-05T12:00:00.000Z",
+        "updatedAt": "2023-01-05T12:00:00.000Z"
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c91",
+        "user": {
+          "_id": "60d21b4667d0d8992e610c86",
+          "name": "Jane Smith"
+        },
+        "product": "60d21b4667d0d8992e610c85",
+        "rating": 4,
+        "title": "Good product",
+        "comment": "Good product for the price.",
+        "createdAt": "2023-01-06T12:00:00.000Z",
+        "updatedAt": "2023-01-06T12:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+### Get User's Product Reviews
+
+```
+GET /api/users/reviews
+```
+
+**Headers:**
+
+```
+Authorization: Bearer <token>
+```
+
+**Query Parameters:**
+
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 2,
+  "pagination": {
+    "total": 8,
+    "page": 1,
+    "pages": 4,
+    "limit": 2
+  },
+  "data": {
+    "reviews": [
+      {
+        "_id": "60d21b4667d0d8992e610c90",
+        "product": {
+          "_id": "60d21b4667d0d8992e610c85",
+          "name": "Smartphone X",
+          "mainImage": "https://example.com/smartphone.jpg"
+        },
+        "rating": 5,
+        "title": "Great product!",
+        "comment": "This is an amazing product. Highly recommended!",
+        "createdAt": "2023-01-05T12:00:00.000Z",
+        "updatedAt": "2023-01-05T12:00:00.000Z"
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c92",
+        "product": {
+          "_id": "60d21b4667d0d8992e610c86",
+          "name": "Laptop Pro",
+          "mainImage": "https://example.com/laptop.jpg"
+        },
+        "rating": 4,
+        "title": "Good laptop",
+        "comment": "Good laptop for the price.",
+        "createdAt": "2023-01-07T12:00:00.000Z",
+        "updatedAt": "2023-01-07T12:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+## Product Wishlist API
+
+These endpoints allow users to interact with their product wishlist.
+
+### Get User's Product Wishlist
+
+```
+GET /api/product-wishlist
+```
+
+**Headers:**
+
+```
+Authorization: Bearer <token>
+```
+
+**Query Parameters:**
+
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 2,
+  "pagination": {
+    "total": 5,
+    "page": 1,
+    "pages": 3,
+    "limit": 2
+  },
+  "data": {
+    "wishlist": [
+      {
+        "_id": "60d21b4667d0d8992e610c95",
+        "product": {
+          "_id": "60d21b4667d0d8992e610c85",
+          "name": "Smartphone X",
+          "mainImage": "https://example.com/smartphone.jpg",
+          "price": 50000,
+          "sellingPrice": 45000,
+          "discountPercentage": 10,
+          "averageRating": 4.5,
+          "reviewCount": 45
+        },
+        "createdAt": "2023-01-10T12:00:00.000Z"
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c96",
+        "product": {
+          "_id": "60d21b4667d0d8992e610c86",
+          "name": "Laptop Pro",
+          "mainImage": "https://example.com/laptop.jpg",
+          "price": 80000,
+          "sellingPrice": 75000,
+          "discountPercentage": 6.25,
+          "averageRating": 4.7,
+          "reviewCount": 30
+        },
+        "createdAt": "2023-01-11T12:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+### Get Popular Wishlisted Products
+
+```
+GET /api/product-wishlist/popular
+```
+
+**Query Parameters:**
+
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
+- `store_id` (optional): Filter by store ID
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 2,
+  "pagination": {
+    "total": 20,
+    "page": 1,
+    "pages": 10,
+    "limit": 2
+  },
+  "data": {
+    "products": [
+      {
+        "_id": "60d21b4667d0d8992e610c85",
+        "name": "Smartphone X",
+        "mainImage": "https://example.com/smartphone.jpg",
+        "price": 50000,
+        "sellingPrice": 45000,
+        "discountPercentage": 10,
+        "averageRating": 4.5,
+        "reviewCount": 45,
+        "wishlistCount": 78
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c86",
+        "name": "Laptop Pro",
+        "mainImage": "https://example.com/laptop.jpg",
+        "price": 80000,
+        "sellingPrice": 75000,
+        "discountPercentage": 6.25,
+        "averageRating": 4.7,
+        "reviewCount": 30,
+        "wishlistCount": 65
+      }
+    ]
+  }
+}
+```
+
+## Store Wishlist API
+
+These endpoints allow users to interact with their store wishlist.
+
+### Get User's Store Wishlist
+
+```
+GET /api/store-wishlist
+```
+
+**Headers:**
+
+```
+Authorization: Bearer <token>
+```
+
+**Query Parameters:**
+
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 2,
+  "pagination": {
+    "total": 4,
+    "page": 1,
+    "pages": 2,
+    "limit": 2
+  },
+  "data": {
+    "wishlist": [
+      {
+        "_id": "60d21b4667d0d8992e610c97",
+        "store": {
+          "_id": "60d21b4667d0d8992e610c85",
+          "name": "Fashion Store",
+          "logo": "https://example.com/logo.jpg",
+          "mainImage": "https://example.com/main.jpg",
+          "tagline": "Latest Fashion Trends",
+          "averageRating": 4.5,
+          "reviewCount": 45
+        },
+        "createdAt": "2023-01-12T12:00:00.000Z"
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c98",
+        "store": {
+          "_id": "60d21b4667d0d8992e610c86",
+          "name": "Electronics Hub",
+          "logo": "https://example.com/logo2.jpg",
+          "mainImage": "https://example.com/main2.jpg",
+          "tagline": "Best Electronics Deals",
+          "averageRating": 4.7,
+          "reviewCount": 65
+        },
+        "createdAt": "2023-01-13T12:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+### Get Popular Wishlisted Stores
+
+```
+GET /api/store-wishlist/popular
+```
+
+**Query Parameters:**
+
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
+- `pincode` (optional): Filter by pincode
+- `isBrand` (optional): Filter by brand status (true/false)
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 2,
+  "pagination": {
+    "total": 15,
+    "page": 1,
+    "pages": 8,
+    "limit": 2
+  },
+  "data": {
+    "stores": [
+      {
+        "_id": "60d21b4667d0d8992e610c86",
+        "name": "Electronics Hub",
+        "logo": "https://example.com/logo2.jpg",
+        "mainImage": "https://example.com/main2.jpg",
+        "tagline": "Best Electronics Deals",
+        "averageRating": 4.7,
+        "reviewCount": 65,
+        "wishlistCount": 120
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c85",
+        "name": "Fashion Store",
+        "logo": "https://example.com/logo.jpg",
+        "mainImage": "https://example.com/main.jpg",
+        "tagline": "Latest Fashion Trends",
+        "averageRating": 4.5,
+        "reviewCount": 45,
+        "wishlistCount": 78
+      }
+    ]
+  }
+}
+```
+
 ## Conclusion
 
 This documentation covers the main API endpoints available in the Dukaan-Pe backend. For frontend developers, these endpoints provide all the necessary functionality to build a complete e-commerce application.
@@ -2397,12 +2866,17 @@ This documentation covers the main API endpoints available in the Dukaan-Pe back
 1. **Authentication APIs** - Register, login, and get user profile
 2. **Address APIs** - Manage user delivery addresses
 3. **Store APIs** - Browse, search, and manage stores
-4. **Product APIs** - Browse, search, and manage products
-5. **Catalogue Products APIs** - Manage generalized product templates
-6. **Pincode Serviceability API** - Check if a pincode is serviceable
-7. **Cart APIs** - Manage shopping cart and apply discounts
-8. **Order APIs** - Create and manage orders
-9. **Payment APIs** - Process payments and refunds
+4. **Store Categories APIs** - Browse and manage store categories
+5. **Store Wishlist APIs** - Manage store wishlist
+6. **Product APIs** - Browse, search, and manage products
+7. **Product Categories APIs** - Browse and manage product categories
+8. **Product Reviews APIs** - Browse and manage product reviews
+9. **Product Wishlist APIs** - Manage product wishlist
+10. **Catalogue Products APIs** - Manage generalized product templates
+11. **Pincode Serviceability API** - Check if a pincode is serviceable
+12. **Cart APIs** - Manage shopping cart and apply discounts
+13. **Order APIs** - Create and manage orders
+14. **Payment APIs** - Process payments and refunds
 
 ### Common Response Formats
 
@@ -2426,10 +2900,10 @@ or in case of errors:
 
 ### Pagination
 
-Many list endpoints support pagination with the following query parameters:
+**All list endpoints** in the API support pagination with the following query parameters:
 
 - `page`: Page number (default: 1)
-- `limit`: Number of results per page (default: 10)
+- `limit`: Number of results per page (default: 10 for most endpoints, 20 for categories)
 
 Paginated responses include pagination metadata:
 
