@@ -2672,6 +2672,70 @@ GET /api/product-categories/sub
 }
 ```
 
+### Get Products by Product Category
+
+```
+GET /api/product-categories/:categoryId/products
+```
+
+**Query Parameters:**
+
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
+
+**Note:** This endpoint now returns products from both the specified category and all its subcategories.
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 2,
+  "pagination": {
+    "total": 15,
+    "page": 1,
+    "pages": 8,
+    "limit": 2
+  },
+  "data": {
+    "products": [
+      {
+        "_id": "60d21b4667d0d8992e610c85",
+        "name": "Smartphone X",
+        "mainImage": "https://example.com/smartphone.jpg",
+        "sellingPrice": 45000,
+        "category": {
+          "_id": "60d21b4667d0d8992e610c87",
+          "name": "Smartphones"
+        },
+        "store": {
+          "_id": "60d21b4667d0d8992e610c86",
+          "name": "Electronics Hub"
+        },
+        "averageRating": 4.5,
+        "reviewCount": 45
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c86",
+        "name": "Laptop Pro",
+        "mainImage": "https://example.com/laptop.jpg",
+        "sellingPrice": 75000,
+        "category": {
+          "_id": "60d21b4667d0d8992e610c88",
+          "name": "Laptops"
+        },
+        "store": {
+          "_id": "60d21b4667d0d8992e610c86",
+          "name": "Electronics Hub"
+        },
+        "averageRating": 4.7,
+        "reviewCount": 30
+      }
+    ]
+  }
+}
+```
+
 ## Store Categories API
 
 These endpoints allow users to interact with store categories on the platform. Categories now support a hierarchical structure with parent and subcategories.
@@ -2779,6 +2843,130 @@ GET /api/store-categories/sub
         "noOfStores": 25,
         "createdAt": "2023-01-01T12:00:00.000Z",
         "updatedAt": "2023-01-01T12:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+### Get Stores by Store Category
+
+```
+GET /api/store-categories/:categoryId/stores
+```
+
+**Query Parameters:**
+
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
+
+**Note:** This endpoint now returns stores from both the specified category and all its subcategories.
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 2,
+  "pagination": {
+    "total": 12,
+    "page": 1,
+    "pages": 6,
+    "limit": 2
+  },
+  "data": {
+    "stores": [
+      {
+        "_id": "60d21b4667d0d8992e610c85",
+        "name": "Fashion Store",
+        "logo": "https://example.com/logo.jpg",
+        "mainImage": "https://example.com/main.jpg",
+        "category": {
+          "_id": "60d21b4667d0d8992e610c86",
+          "name": "Fashion"
+        },
+        "averageRating": 4.5,
+        "reviewCount": 45
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c87",
+        "name": "Men's Fashion",
+        "logo": "https://example.com/logo2.jpg",
+        "mainImage": "https://example.com/main2.jpg",
+        "category": {
+          "_id": "60d21b4667d0d8992e610c87",
+          "name": "Men's Clothing Stores"
+        },
+        "averageRating": 4.3,
+        "reviewCount": 38
+      }
+    ]
+  }
+}
+```
+
+### Get Stores by Product Category
+
+```
+GET /api/product-categories/:categoryId/stores
+```
+
+**Query Parameters:**
+
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
+
+**Note:** This endpoint now returns stores from both the specified product category and all its subcategories.
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 2,
+  "pagination": {
+    "total": 8,
+    "page": 1,
+    "pages": 4,
+    "limit": 2
+  },
+  "data": {
+    "stores": [
+      {
+        "_id": "60d21b4667d0d8992e610c86",
+        "name": "Electronics Hub",
+        "logo": "https://example.com/logo2.jpg",
+        "mainImage": "https://example.com/main2.jpg",
+        "category": {
+          "_id": "60d21b4667d0d8992e610c85",
+          "name": "Electronics"
+        },
+        "productCategories": [
+          {
+            "_id": "60d21b4667d0d8992e610c87",
+            "name": "Smartphones"
+          }
+        ],
+        "averageRating": 4.7,
+        "reviewCount": 65
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c88",
+        "name": "Laptop World",
+        "logo": "https://example.com/logo3.jpg",
+        "mainImage": "https://example.com/main3.jpg",
+        "category": {
+          "_id": "60d21b4667d0d8992e610c85",
+          "name": "Electronics"
+        },
+        "productCategories": [
+          {
+            "_id": "60d21b4667d0d8992e610c88",
+            "name": "Laptops"
+          }
+        ],
+        "averageRating": 4.6,
+        "reviewCount": 52
       }
     ]
   }
