@@ -663,31 +663,59 @@ export const searchStores = catchAsync(async (req: Request, res: Response) => {
   // Build base query with pincode filtering
   const baseQuery = buildBaseQuery(req);
 
-  // Add text search
-  const query = {
-    ...baseQuery,
-    $or: [
-      { $text: { $search: searchTerm } },
-      { name: { $regex: searchTerm, $options: "i" } },
-      { tagline: { $regex: searchTerm, $options: "i" } },
-      { description: { $regex: searchTerm, $options: "i" } },
-    ],
-  };
+  // Try text search first
+  let stores = [];
+  let total = 0;
 
-  const stores = await Store.find(query)
-    .sort({ score: { $meta: "textScore" }, popularity_index: -1 })
-    .skip(skip)
-    .limit(limit)
-    .populate({
-      path: "category",
-      select: "name",
-    })
-    .populate({
-      path: "productCategories",
-      select: "name",
-    });
+  try {
+    // First attempt: Use text search with proper index
+    const textQuery = {
+      ...baseQuery,
+      $text: { $search: searchTerm },
+      isDeleted: false,
+    };
 
-  const total = await Store.countDocuments(query);
+    stores = await Store.find(textQuery)
+      .sort({ score: { $meta: "textScore" }, popularity_index: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "category",
+        select: "name",
+      })
+      .populate({
+        path: "productCategories",
+        select: "name",
+      });
+
+    total = await Store.countDocuments(textQuery);
+  } catch (error) {
+    // If text search fails, fallback to regex search
+    const regexQuery = {
+      ...baseQuery,
+      isDeleted: false,
+      $or: [
+        { name: { $regex: searchTerm, $options: "i" } },
+        { tagline: { $regex: searchTerm, $options: "i" } },
+        { description: { $regex: searchTerm, $options: "i" } },
+      ],
+    };
+
+    stores = await Store.find(regexQuery)
+      .sort({ popularity_index: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "category",
+        select: "name",
+      })
+      .populate({
+        path: "productCategories",
+        select: "name",
+      });
+
+    total = await Store.countDocuments(regexQuery);
+  }
 
   res.status(200).json({
     status: "success",

@@ -599,31 +599,59 @@ export const searchStoreProducts = catchAsync(
     // Build base query with store filtering
     const baseQuery = buildBaseQuery(req);
 
-    // Add text search
-    const query = {
-      ...baseQuery,
-      $or: [
-        { $text: { $search: searchTerm } },
-        { name: { $regex: searchTerm, $options: "i" } },
-        { description: { $regex: searchTerm, $options: "i" } },
-        { tags: { $regex: searchTerm, $options: "i" } },
-      ],
-    };
+    // Try text search first
+    let products = [];
+    let total = 0;
 
-    const products = await Product.find(query)
-      .sort({ score: { $meta: "textScore" }, popularityIndex: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate({
-        path: "category",
-        select: "name",
-      })
-      .populate({
-        path: "store",
-        select: "name logo",
-      });
+    try {
+      // First attempt: Use text search with proper index
+      const textQuery = {
+        ...baseQuery,
+        $text: { $search: searchTerm },
+        isDeleted: false,
+      };
 
-    const total = await Product.countDocuments(query);
+      products = await Product.find(textQuery)
+        .sort({ score: { $meta: "textScore" }, popularityIndex: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate({
+          path: "category",
+          select: "name",
+        })
+        .populate({
+          path: "store",
+          select: "name logo",
+        });
+
+      total = await Product.countDocuments(textQuery);
+    } catch (error) {
+      // If text search fails, fallback to regex search
+      const regexQuery = {
+        ...baseQuery,
+        isDeleted: false,
+        $or: [
+          { name: { $regex: searchTerm, $options: "i" } },
+          { description: { $regex: searchTerm, $options: "i" } },
+          { tags: { $regex: searchTerm, $options: "i" } },
+        ],
+      };
+
+      products = await Product.find(regexQuery)
+        .sort({ popularityIndex: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate({
+          path: "category",
+          select: "name",
+        })
+        .populate({
+          path: "store",
+          select: "name logo",
+        });
+
+      total = await Product.countDocuments(regexQuery);
+    }
 
     res.status(200).json({
       status: "success",
@@ -672,31 +700,59 @@ export const searchProductsOverall = catchAsync(
 
     const storeIds = stores.map((store) => store._id);
 
-    // Add text search with store filter
-    const query = {
-      store_id: { $in: storeIds },
-      $or: [
-        { $text: { $search: searchTerm } },
-        { name: { $regex: searchTerm, $options: "i" } },
-        { description: { $regex: searchTerm, $options: "i" } },
-        { tags: { $regex: searchTerm, $options: "i" } },
-      ],
-    };
+    // Try text search first
+    let products = [];
+    let total = 0;
 
-    const products = await Product.find(query)
-      .sort({ score: { $meta: "textScore" }, popularityIndex: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate({
-        path: "category",
-        select: "name",
-      })
-      .populate({
-        path: "store",
-        select: "name logo",
-      });
+    try {
+      // First attempt: Use text search with proper index
+      const textQuery = {
+        store_id: { $in: storeIds },
+        $text: { $search: searchTerm },
+        isDeleted: false,
+      };
 
-    const total = await Product.countDocuments(query);
+      products = await Product.find(textQuery)
+        .sort({ score: { $meta: "textScore" }, popularityIndex: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate({
+          path: "category",
+          select: "name",
+        })
+        .populate({
+          path: "store",
+          select: "name logo",
+        });
+
+      total = await Product.countDocuments(textQuery);
+    } catch (error) {
+      // If text search fails, fallback to regex search
+      const regexQuery = {
+        store_id: { $in: storeIds },
+        isDeleted: false,
+        $or: [
+          { name: { $regex: searchTerm, $options: "i" } },
+          { description: { $regex: searchTerm, $options: "i" } },
+          { tags: { $regex: searchTerm, $options: "i" } },
+        ],
+      };
+
+      products = await Product.find(regexQuery)
+        .sort({ popularityIndex: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate({
+          path: "category",
+          select: "name",
+        })
+        .populate({
+          path: "store",
+          select: "name logo",
+        });
+
+      total = await Product.countDocuments(regexQuery);
+    }
 
     res.status(200).json({
       status: "success",

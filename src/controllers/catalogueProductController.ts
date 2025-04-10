@@ -292,27 +292,51 @@ export const searchCatalogueProducts = catchAsync(
     // Build base query
     const baseQuery = buildBaseQuery(req);
 
-    // Add text search
-    const query = {
-      ...baseQuery,
-      $or: [
-        { $text: { $search: searchTerm } },
-        { name: { $regex: searchTerm, $options: "i" } },
-        { description: { $regex: searchTerm, $options: "i" } },
-        { tags: { $regex: searchTerm, $options: "i" } },
-      ],
-    };
+    // Try text search first
+    let catalogueProducts = [];
+    let total = 0;
 
-    const catalogueProducts = await CatalogueProduct.find(query)
-      .sort({ score: { $meta: "textScore" }, popularityIndex: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate({
-        path: "category",
-        select: "name",
-      });
+    try {
+      // First attempt: Use text search with proper index
+      const textQuery = {
+        ...baseQuery,
+        $text: { $search: searchTerm },
+        isDeleted: false,
+      };
 
-    const total = await CatalogueProduct.countDocuments(query);
+      catalogueProducts = await CatalogueProduct.find(textQuery)
+        .sort({ score: { $meta: "textScore" }, popularityIndex: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate({
+          path: "category",
+          select: "name",
+        });
+
+      total = await CatalogueProduct.countDocuments(textQuery);
+    } catch (error) {
+      // If text search fails, fallback to regex search
+      const regexQuery = {
+        ...baseQuery,
+        isDeleted: false,
+        $or: [
+          { name: { $regex: searchTerm, $options: "i" } },
+          { description: { $regex: searchTerm, $options: "i" } },
+          { tags: { $regex: searchTerm, $options: "i" } },
+        ],
+      };
+
+      catalogueProducts = await CatalogueProduct.find(regexQuery)
+        .sort({ popularityIndex: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate({
+          path: "category",
+          select: "name",
+        });
+
+      total = await CatalogueProduct.countDocuments(regexQuery);
+    }
 
     res.status(200).json({
       status: "success",

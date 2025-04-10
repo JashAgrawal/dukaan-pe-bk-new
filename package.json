@@ -10,7 +10,8 @@
     "test": "jest",
     "seed": "ts-node scripts/seeder.ts",
     "seed:clear": "ts-node scripts/seeder.ts --clear",
-    "verify-data": "ts-node scripts/verify-data.ts"
+    "verify-data": "ts-node scripts/verify-data.ts",
+    "create-indexes": "ts-node scripts/create-indexes.ts"
   },
   "keywords": [],
   "author": "",
