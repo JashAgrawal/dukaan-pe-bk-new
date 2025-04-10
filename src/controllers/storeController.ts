@@ -462,9 +462,16 @@ export const getStoresByCategory = catchAsync(
       return next(new AppError("Category not found", 404));
     }
 
+    // Get all subcategories of this category
+    const subcategories = await StoreCategory.find({ parentId: categoryId });
+    const subcategoryIds = subcategories.map((subcat) => subcat._id);
+
+    // Include the main category and all its subcategories in the query
+    const categoryIds = [categoryId, ...subcategoryIds];
+
     const query = {
       ...buildBaseQuery(req),
-      category: categoryId,
+      category: { $in: categoryIds },
     };
 
     const stores = await Store.find(query)
@@ -510,9 +517,16 @@ export const getStoresByProductCategory = catchAsync(
       return next(new AppError("Product category not found", 404));
     }
 
+    // Get all subcategories of this product category
+    const subcategories = await ProductCategory.find({ parentId: categoryId });
+    const subcategoryIds = subcategories.map((subcat) => subcat._id);
+
+    // Include the main category and all its subcategories in the query
+    const categoryIds = [categoryId, ...subcategoryIds];
+
     const query = {
       ...buildBaseQuery(req),
-      productCategories: categoryId,
+      productCategories: { $in: categoryIds },
     };
 
     const stores = await Store.find(query)
@@ -646,6 +660,133 @@ export const getStoresByFavouriteCount = catchAsync(
  * @route GET /api/stores/search
  * @access Public
  */
+/**
+ * Search stores with filters and sorting
+ * @route GET /api/stores/search-with-filters
+ * @access Public
+ */
+export const searchStoresWithFilters = catchAsync(
+  async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    // Extract filter parameters
+    const query = req.query.query as string;
+    const categoryIds = req.query.categoryIds
+      ? (req.query.categoryIds as string).split(",")
+      : [];
+    const tags = req.query.tags ? (req.query.tags as string).split(",") : [];
+    const type = req.query.type as string;
+    const isOpen = req.query.isOpen === "true";
+    const isBrand = req.query.isBrand === "true";
+    const isPanIndia = req.query.isPanIndia === "true";
+    const pincode = req.query.pincode as string;
+    const sortBy = (req.query.sortBy as string) || "popularity";
+
+    // Build filter query
+    const filterQuery: any = { isDeleted: false };
+
+    // Add text search if query provided
+    if (query) {
+      filterQuery.$or = [
+        { name: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
+        { tagline: { $regex: query, $options: "i" } },
+      ];
+    }
+
+    // Add category filter
+    if (categoryIds.length > 0) {
+      // Get all subcategories of the selected categories
+      const subcategories = await StoreCategory.find({
+        parentId: { $in: categoryIds },
+      });
+      const subcategoryIds = subcategories.map((subcat) =>
+        (subcat._id as mongoose.Types.ObjectId).toString()
+      );
+
+      // Include both parent categories and their subcategories
+      const allCategoryIds = [...categoryIds, ...subcategoryIds];
+      filterQuery.category = { $in: allCategoryIds };
+    }
+
+    // Add type filter
+    if (type) {
+      filterQuery.type = type;
+    }
+
+    // Add isOpen filter
+    if (req.query.isOpen !== undefined) {
+      filterQuery.isOpen = isOpen;
+    }
+
+    // Add isBrand filter
+    if (req.query.isBrand !== undefined) {
+      filterQuery.isBrand = isBrand;
+    }
+
+    // Add isPanIndia filter
+    if (req.query.isPanIndia !== undefined) {
+      filterQuery.isPanIndia = isPanIndia;
+    }
+
+    // Add pincode filter
+    if (pincode) {
+      filterQuery.$or = filterQuery.$or || [];
+      filterQuery.$or.push(
+        { serviceable_pincodes: pincode },
+        { isPanIndia: true }
+      );
+    }
+
+    // Determine sort order
+    let sortOptions: any = {};
+    switch (sortBy) {
+      case "nearest":
+        // For nearest, we need coordinates which should be handled separately
+        // This is a placeholder - actual implementation would use geospatial queries
+        sortOptions = { popularity_index: -1 };
+        break;
+      case "avgRating":
+        sortOptions = { averageRating: -1, reviewCount: -1 };
+        break;
+      case "popularity":
+      default:
+        sortOptions = { popularity_index: -1, orderCount: -1 };
+        break;
+    }
+
+    // Execute query
+    const stores = await Store.find(filterQuery)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "category",
+        select: "name",
+      })
+      .populate({
+        path: "productCategories",
+        select: "name",
+      });
+
+    const total = await Store.countDocuments(filterQuery);
+
+    res.status(200).json({
+      status: "success",
+      results: stores.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
+      data: { stores },
+    });
+  }
+);
+
 export const searchStores = catchAsync(async (req: Request, res: Response) => {
   const searchTerm = req.query.q as string;
   const page = parseInt(req.query.page as string) || 1;

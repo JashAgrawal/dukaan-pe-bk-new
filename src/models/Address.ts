@@ -24,7 +24,63 @@ export interface IAddress extends Document {
 
 const addressSchema = new Schema<IAddress>(
   {
-    // ... existing fields ...
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "User is required"],
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+        required: [true, "Coordinates are required"],
+      },
+    },
+    country: {
+      type: String,
+      required: [true, "Country is required"],
+    },
+    state: {
+      type: String,
+      required: [true, "State is required"],
+    },
+    city: {
+      type: String,
+      required: [true, "City is required"],
+    },
+    pincode: {
+      type: String,
+      required: [true, "Pincode is required"],
+      match: [/^[0-9]{6}$/, "Pincode must be 6 digits"],
+    },
+    houseDetails: {
+      type: String,
+      required: [true, "House details are required"],
+    },
+    streetAddress: {
+      type: String,
+      required: [true, "Street address is required"],
+    },
+    directionToReach: {
+      type: String,
+    },
+    googleFetchedAddress: {
+      type: String,
+      required: [true, "Google fetched address is required"],
+    },
+    type: {
+      type: String,
+      enum: ["home", "work", "other"],
+      default: "home",
+    },
+    isDefault: {
+      type: Boolean,
+      default: false,
+    },
     isDeleted: {
       type: Boolean,
       default: false,
@@ -39,8 +95,11 @@ const addressSchema = new Schema<IAddress>(
   }
 );
 
+// Create a geospatial index on the location field
+addressSchema.index({ location: "2dsphere" });
+
 // Add middleware to exclude soft-deleted documents by default
-addressSchema.pre(/^find/, function(this: Query<any, any>) {
+addressSchema.pre(/^find/, function (this: Query<any, any>) {
   // @ts-ignore
   if (!this.getQuery().includeSoftDeleted) {
     this.where({ isDeleted: false });
@@ -53,10 +112,10 @@ addressSchema.pre(/^find/, function(this: Query<any, any>) {
 addressSchema.pre("save", async function (next) {
   if (this.isDefault) {
     await this.model("Address").updateMany(
-      { 
-        user: this.user, 
+      {
+        user: this.user,
         _id: { $ne: this._id },
-        isDeleted: false 
+        isDeleted: false,
       },
       { isDefault: false }
     );

@@ -71,7 +71,7 @@ const clearData = async (): Promise<void> => {
 
 // Create store categories
 const createStoreCategories = async (): Promise<Types.ObjectId[]> => {
-  const categories = [
+  const parentCategories = [
     {
       name: "Fashion",
       image: "/static/images/uploads/storeorproductMainImage.png",
@@ -115,9 +115,87 @@ const createStoreCategories = async (): Promise<Types.ObjectId[]> => {
   ];
 
   try {
-    const createdCategories = await StoreCategory.create(categories);
-    logger.info(`Created ${createdCategories.length} store categories`);
-    return createdCategories.map((category) => category._id as Types.ObjectId);
+    // Create parent categories first
+    const createdParentCategories = await StoreCategory.create(
+      parentCategories
+    );
+    logger.info(
+      `Created ${createdParentCategories.length} parent store categories`
+    );
+
+    // Create subcategories for each parent category
+    const subcategories: Array<{
+      name: string;
+      image: string;
+      parentId: mongoose.Types.ObjectId;
+    }> = [];
+
+    // Fashion subcategories
+    const fashionCategory = createdParentCategories.find(
+      (cat) => cat.name === "Fashion"
+    );
+    if (fashionCategory) {
+      subcategories.push(
+        {
+          name: "Men's Clothing",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: fashionCategory._id as mongoose.Types.ObjectId,
+        },
+        {
+          name: "Women's Clothing",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: fashionCategory._id as mongoose.Types.ObjectId,
+        },
+        {
+          name: "Footwear",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: fashionCategory._id as mongoose.Types.ObjectId,
+        },
+        {
+          name: "Kids Wear",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: fashionCategory._id as mongoose.Types.ObjectId,
+        }
+      );
+    }
+
+    // Electronics subcategories
+    const electronicsCategory = createdParentCategories.find(
+      (cat) => cat.name === "Electronics"
+    );
+    if (electronicsCategory) {
+      subcategories.push(
+        {
+          name: "Smartphones",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: electronicsCategory._id as mongoose.Types.ObjectId,
+        },
+        {
+          name: "Laptops",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: electronicsCategory._id as mongoose.Types.ObjectId,
+        },
+        {
+          name: "Audio Devices",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: electronicsCategory._id as mongoose.Types.ObjectId,
+        },
+        {
+          name: "Smart Home",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: electronicsCategory._id as mongoose.Types.ObjectId,
+        }
+      );
+    }
+
+    // Create the subcategories
+    const createdSubcategories = await StoreCategory.create(subcategories);
+    logger.info(`Created ${createdSubcategories.length} store subcategories`);
+
+    // Return all category IDs (both parent and subcategories)
+    return [...createdParentCategories, ...createdSubcategories].map(
+      (category) => category._id as Types.ObjectId
+    );
   } catch (error) {
     logger.error(
       `Error creating store categories: ${
@@ -132,53 +210,140 @@ const createStoreCategories = async (): Promise<Types.ObjectId[]> => {
 const createProductCategories = async (): Promise<
   mongoose.Types.ObjectId[]
 > => {
-  const categories = [
+  const parentCategories = [
     {
       name: "Clothing",
       image: "/static/images/uploads/storeorproductMainImage.png",
     },
     {
-      name: "Smartphones",
+      name: "Electronics",
       image: "/static/images/uploads/storeorproductMainImage.png",
     },
     {
-      name: "Laptops",
+      name: "Home Decor",
       image: "/static/images/uploads/storeorproductMainImage.png",
     },
     {
-      name: "Furniture",
+      name: "Beauty",
       image: "/static/images/uploads/storeorproductMainImage.png",
     },
     {
-      name: "Skincare",
+      name: "Books",
       image: "/static/images/uploads/storeorproductMainImage.png",
     },
     {
-      name: "Fiction Books",
+      name: "Sports",
       image: "/static/images/uploads/storeorproductMainImage.png",
     },
     {
-      name: "Fitness Equipment",
+      name: "Toys",
       image: "/static/images/uploads/storeorproductMainImage.png",
     },
     {
-      name: "Board Games",
+      name: "Food",
       image: "/static/images/uploads/storeorproductMainImage.png",
     },
     {
-      name: "Organic Food",
+      name: "Health",
       image: "/static/images/uploads/storeorproductMainImage.png",
     },
     {
-      name: "Vitamins & Supplements",
+      name: "Jewelry",
       image: "/static/images/uploads/storeorproductMainImage.png",
     },
   ];
 
   try {
-    const createdCategories = await ProductCategory.create(categories);
-    logger.info(`Created ${createdCategories.length} product categories`);
-    return createdCategories.map((category) => category._id as Types.ObjectId);
+    // Create parent categories first
+    const createdParentCategories = await ProductCategory.create(
+      parentCategories
+    );
+    logger.info(
+      `Created ${createdParentCategories.length} parent product categories`
+    );
+
+    // Create subcategories for each parent category
+    const subcategories: Array<{
+      name: string;
+      image: string;
+      parentId: mongoose.Types.ObjectId;
+    }> = [];
+
+    // Clothing subcategories
+    const clothingCategory = createdParentCategories.find(
+      (cat) => cat.name === "Clothing"
+    );
+    if (clothingCategory) {
+      subcategories.push(
+        {
+          name: "Men's Clothing",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: clothingCategory._id as mongoose.Types.ObjectId,
+        },
+        {
+          name: "Women's Clothing",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: clothingCategory._id as mongoose.Types.ObjectId,
+        },
+        {
+          name: "Kids Clothing",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: clothingCategory._id as mongoose.Types.ObjectId,
+        }
+      );
+    }
+
+    // Electronics subcategories
+    const electronicsCategory = createdParentCategories.find(
+      (cat) => cat.name === "Electronics"
+    );
+    if (electronicsCategory) {
+      subcategories.push(
+        {
+          name: "Smartphones",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: electronicsCategory._id as mongoose.Types.ObjectId,
+        },
+        {
+          name: "Laptops",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: electronicsCategory._id as mongoose.Types.ObjectId,
+        },
+        {
+          name: "Tablets",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: electronicsCategory._id as mongoose.Types.ObjectId,
+        }
+      );
+    }
+
+    // Home Decor subcategories
+    const homeCategory = createdParentCategories.find(
+      (cat) => cat.name === "Home Decor"
+    );
+    if (homeCategory) {
+      subcategories.push(
+        {
+          name: "Furniture",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: homeCategory._id as mongoose.Types.ObjectId,
+        },
+        {
+          name: "Lighting",
+          image: "/static/images/uploads/storeorproductMainImage.png",
+          parentId: homeCategory._id as mongoose.Types.ObjectId,
+        }
+      );
+    }
+
+    // Create the subcategories
+    const createdSubcategories = await ProductCategory.create(subcategories);
+    logger.info(`Created ${createdSubcategories.length} product subcategories`);
+
+    // Return all category IDs (both parent and subcategories)
+    return [...createdParentCategories, ...createdSubcategories].map(
+      (category) => category._id as Types.ObjectId
+    );
   } catch (error) {
     logger.error(
       `Error creating product categories: ${
@@ -193,7 +358,11 @@ const createProductCategories = async (): Promise<
 const createUsers = async (
   count: number
 ): Promise<mongoose.Types.ObjectId[]> => {
-  const users = [];
+  const users: Array<{
+    name: string;
+    mobileNumber: string;
+    role: string;
+  }> = [];
 
   for (let i = 0; i < count; i++) {
     const mobileNumber = `+91${faker.string.numeric(10)}`;
@@ -224,7 +393,39 @@ const createStores = async (
   storeCategoryIds: mongoose.Types.ObjectId[],
   productCategoryIds: mongoose.Types.ObjectId[]
 ): Promise<mongoose.Types.ObjectId[]> => {
-  const stores = [];
+  interface StoreData {
+    name: string;
+    tagline: string;
+    description: string;
+    owner_id: mongoose.Types.ObjectId;
+    business_phone_number: string;
+    business_email: string;
+    full_address: string;
+    city: string;
+    state: string;
+    country: string;
+    serviceable_pincodes: string[];
+    isPanIndia: boolean;
+    type: ServiceTypeEnum;
+    category: mongoose.Types.ObjectId;
+    productCategories: mongoose.Types.ObjectId[];
+    logo: string;
+    coverImage: string;
+    mainImage: string;
+    allImages: string[];
+    popularity_index: number;
+    isBrand: boolean;
+    isOpen: boolean;
+    opensAt: string;
+    closesAt: string;
+    is_24_7: boolean;
+    location: {
+      type: string;
+      coordinates: number[];
+    };
+  }
+
+  const stores: StoreData[] = [];
   const serviceTypes: ServiceTypeEnum[] = [
     "physical_product",
     "digital_product",
@@ -251,7 +452,7 @@ const createStores = async (
     }
 
     // Generate 5-10 random pincodes
-    const pincodes = [];
+    const pincodes: string[] = [];
     const numPincodes = Math.floor(Math.random() * 6) + 5; // 5 to 10
     for (let i = 0; i < numPincodes; i++) {
       pincodes.push(faker.string.numeric(6));
@@ -317,8 +518,43 @@ const createProducts = async (
   ];
   let totalProducts = 0;
 
+  interface SizeVariant {
+    size: string;
+    price: number;
+    sellingPrice: number;
+    inventory: number;
+    sku: string;
+  }
+
+  interface Variant {
+    name: string;
+    value: string;
+    price: number;
+    sellingPrice: number;
+    inventory: number;
+    sku: string;
+  }
+
+  interface ProductData {
+    name: string;
+    description: string;
+    mainImage: string;
+    allImages: string[];
+    type: ProductTypeEnum;
+    price: number;
+    sellingPrice: number;
+    inventory: number;
+    sizeVariants: SizeVariant[];
+    variants: Variant[];
+    category: mongoose.Types.ObjectId;
+    store_id: mongoose.Types.ObjectId;
+    store: mongoose.Types.ObjectId;
+    popularityIndex: number;
+    tags: string[];
+  }
+
   for (const storeId of storeIds) {
-    const products = [];
+    const products: ProductData[] = [];
     const store = await Store.findById(storeId);
 
     if (!store) continue;
@@ -332,15 +568,16 @@ const createProducts = async (
         storeProductCategories.length > 0
           ? storeProductCategories
           : productCategoryIds;
-      const randomCategoryId =
-        categoryPool[Math.floor(Math.random() * categoryPool.length)];
+      const randomCategoryId = categoryPool[
+        Math.floor(Math.random() * categoryPool.length)
+      ] as mongoose.Types.ObjectId;
 
       const price = faker.number.int({ min: 100, max: 10000 });
       const discountPercentage = faker.number.int({ min: 0, max: 50 });
       const sellingPrice = Math.round(price * (1 - discountPercentage / 100));
 
       // Generate 0-3 size variants
-      const sizeVariants = [];
+      const sizeVariants: SizeVariant[] = [];
       const hasSizeVariants = faker.datatype.boolean();
 
       if (hasSizeVariants) {
@@ -365,7 +602,7 @@ const createProducts = async (
       }
 
       // Generate 0-3 other variants
-      const variants = [];
+      const variants: Variant[] = [];
       const hasVariants = faker.datatype.boolean();
 
       if (hasVariants) {
@@ -405,7 +642,7 @@ const createProducts = async (
       }
 
       // Generate 1-5 tags
-      const tags = [];
+      const tags: string[] = [];
       const numTags = Math.floor(Math.random() * 5) + 1; // 1 to 5
 
       for (let j = 0; j < numTags; j++) {

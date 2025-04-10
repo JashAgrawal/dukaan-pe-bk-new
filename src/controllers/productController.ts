@@ -501,9 +501,16 @@ export const getProductsByProductCategory = catchAsync(
       return next(new AppError("Category not found", 404));
     }
 
+    // Get all subcategories of this category
+    const subcategories = await ProductCategory.find({ parentId: categoryId });
+    const subcategoryIds = subcategories.map((subcat) => subcat._id);
+
+    // Include the main category and all its subcategories in the query
+    const categoryIds = [categoryId, ...subcategoryIds];
+
     const query = {
       ...buildBaseQuery(req),
-      category: categoryId,
+      category: { $in: categoryIds },
     };
 
     const products = await Product.find(query)
@@ -773,6 +780,131 @@ export const searchProductsOverall = catchAsync(
  * @route GET /api/stores/:storeId/products
  * @access Public
  */
+/**
+ * Search products with filters and sorting
+ * @route GET /api/products/search-with-filters
+ * @access Public
+ */
+export const searchProductsWithFilters = catchAsync(
+  async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    // Extract filter parameters
+    const query = req.query.query as string;
+    const categoryIds = req.query.categoryIds
+      ? (req.query.categoryIds as string).split(",")
+      : [];
+    const tags = req.query.tags ? (req.query.tags as string).split(",") : [];
+    const type = req.query.type as string;
+    const minPrice = req.query.minPrice
+      ? parseFloat(req.query.minPrice as string)
+      : undefined;
+    const maxPrice = req.query.maxPrice
+      ? parseFloat(req.query.maxPrice as string)
+      : undefined;
+    const sortBy = (req.query.sortBy as string) || "popularity";
+
+    // Build filter query
+    const filterQuery: any = { isDeleted: false };
+
+    // Add text search if query provided
+    if (query) {
+      filterQuery.$or = [
+        { name: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
+        { tags: { $regex: query, $options: "i" } },
+      ];
+    }
+
+    // Add category filter
+    if (categoryIds.length > 0) {
+      // Get all subcategories of the selected categories
+      const subcategories = await ProductCategory.find({
+        parentId: { $in: categoryIds },
+      });
+      const subcategoryIds = subcategories.map((subcat) =>
+        (subcat._id as mongoose.Types.ObjectId).toString()
+      );
+
+      // Include both parent categories and their subcategories
+      const allCategoryIds = [...categoryIds, ...subcategoryIds];
+      filterQuery.category = { $in: allCategoryIds };
+    }
+
+    // Add tags filter
+    if (tags.length > 0) {
+      filterQuery.tags = { $in: tags };
+    }
+
+    // Add type filter
+    if (type) {
+      filterQuery.type = type;
+    }
+
+    // Add price range filter
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      filterQuery.sellingPrice = {};
+      if (minPrice !== undefined) {
+        filterQuery.sellingPrice.$gte = minPrice;
+      }
+      if (maxPrice !== undefined) {
+        filterQuery.sellingPrice.$lte = maxPrice;
+      }
+    }
+
+    // Determine sort order
+    let sortOptions: any = {};
+    switch (sortBy) {
+      case "price-low-to-high":
+        sortOptions = { sellingPrice: 1 };
+        break;
+      case "price-high-to-low":
+        sortOptions = { sellingPrice: -1 };
+        break;
+      case "discount":
+        sortOptions = { discountPercentage: -1 };
+        break;
+      case "avgRating":
+        sortOptions = { averageRating: -1, reviewCount: -1 };
+        break;
+      case "popularity":
+      default:
+        sortOptions = { popularityIndex: -1, orderCount: -1 };
+        break;
+    }
+
+    // Execute query
+    const products = await Product.find(filterQuery)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "category",
+        select: "name",
+      })
+      .populate({
+        path: "store",
+        select: "name logo",
+      });
+
+    const total = await Product.countDocuments(filterQuery);
+
+    res.status(200).json({
+      status: "success",
+      results: products.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
+      data: { products },
+    });
+  }
+);
+
 export const getStoreProducts = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const storeId = req.params.storeId;

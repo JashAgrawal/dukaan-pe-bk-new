@@ -12,11 +12,15 @@ import {
   getProductsByFavouriteCount,
   searchStoreProducts,
   searchProductsOverall,
+  searchProductsWithFilters,
   getStoreProducts,
 } from "../controllers/productController";
 import { protect, restrictTo } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validationMiddleware";
-import { productSchema, productUpdateSchema } from "../validators/productValidators";
+import {
+  productSchema,
+  productUpdateSchema,
+} from "../validators/productValidators";
 
 const router = Router();
 
@@ -28,6 +32,7 @@ router.get("/category/:categoryId", getProductsByProductCategory);
 router.get("/by-favourite", getProductsByFavouriteCount);
 router.get("/search", searchStoreProducts);
 router.get("/search-overall", searchProductsOverall);
+router.get("/search-with-filters", searchProductsWithFilters);
 router.get("/store/:storeId", getStoreProducts);
 router.get("/:id", getProduct);
 

@@ -937,6 +937,89 @@ GET /api/stores/search
 }
 ```
 
+### Search Stores with Filters
+
+```
+GET /api/stores/search-with-filters
+```
+
+**Query Parameters:**
+
+- `query` (optional): Search query for text search
+- `categoryIds` (optional): Comma-separated list of category IDs (includes subcategories automatically)
+- `tags` (optional): Comma-separated list of tags
+- `type` (optional): Store type filter
+- `isOpen` (optional): Filter by open status (true/false)
+- `isBrand` (optional): Filter by brand status (true/false)
+- `isPanIndia` (optional): Filter by pan-India status (true/false)
+- `pincode` (optional): Filter by serviceable pincode
+- `sortBy` (optional): Sort results by (popularity, nearest, avgRating)
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 2,
+  "pagination": {
+    "total": 2,
+    "page": 1,
+    "pages": 1,
+    "limit": 10
+  },
+  "data": {
+    "stores": [
+      {
+        "_id": "60d21b4667d0d8992e610c85",
+        "name": "Fashion Store",
+        "tagline": "Latest Fashion Trends",
+        "logo": "https://example.com/logo.jpg",
+        "mainImage": "https://example.com/main.jpg",
+        "category": {
+          "_id": "60d21b4667d0d8992e610c86",
+          "name": "Fashion"
+        },
+        "productCategories": [
+          {
+            "_id": "60d21b4667d0d8992e610c87",
+            "name": "Clothing"
+          }
+        ],
+        "averageRating": 4.5,
+        "reviewCount": 45,
+        "isOpen": true,
+        "isBrand": true,
+        "isPanIndia": false
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c86",
+        "name": "Electronics Hub",
+        "tagline": "Best Electronics Deals",
+        "logo": "https://example.com/logo2.jpg",
+        "mainImage": "https://example.com/main2.jpg",
+        "category": {
+          "_id": "60d21b4667d0d8992e610c85",
+          "name": "Electronics"
+        },
+        "productCategories": [
+          {
+            "_id": "60d21b4667d0d8992e610c88",
+            "name": "Smartphones"
+          }
+        ],
+        "averageRating": 4.7,
+        "reviewCount": 65,
+        "isOpen": true,
+        "isBrand": true,
+        "isPanIndia": true
+      }
+    ]
+  }
+}
+```
+
 ## Product APIs
 
 These endpoints allow users to interact with products on the platform.
@@ -1323,6 +1406,87 @@ GET /api/products/top-selling
           "_id": "60d21b4667d0d8992e610c86",
           "name": "Electronics Hub"
         }
+      }
+    ]
+  }
+}
+```
+
+### Search Products with Filters
+
+```
+GET /api/products/search-with-filters
+```
+
+**Query Parameters:**
+
+- `query` (optional): Search query for text search
+- `categoryIds` (optional): Comma-separated list of category IDs (includes subcategories automatically)
+- `tags` (optional): Comma-separated list of tags
+- `type` (optional): Product type filter
+- `minPrice` (optional): Minimum price filter
+- `maxPrice` (optional): Maximum price filter
+- `sortBy` (optional): Sort results by (popularity, price-low-to-high, price-high-to-low, discount, avgRating)
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 10)
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 2,
+  "pagination": {
+    "total": 2,
+    "page": 1,
+    "pages": 1,
+    "limit": 10
+  },
+  "data": {
+    "products": [
+      {
+        "_id": "60d21b4667d0d8992e610c85",
+        "name": "Smartphone X",
+        "mainImage": "https://example.com/smartphone.jpg",
+        "sellingPrice": 45000,
+        "price": 50000,
+        "discountPercentage": 10,
+        "category": {
+          "_id": "60d21b4667d0d8992e610c87",
+          "name": "Smartphones"
+        },
+        "store": {
+          "_id": "60d21b4667d0d8992e610c86",
+          "name": "Electronics Hub",
+          "logo": "https://example.com/logo2.jpg"
+        },
+        "averageRating": 4.5,
+        "reviewCount": 45,
+        "tags": ["smartphone", "electronics", "mobile"],
+        "type": "physical",
+        "popularityIndex": 85
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c86",
+        "name": "Laptop Pro",
+        "mainImage": "https://example.com/laptop.jpg",
+        "sellingPrice": 75000,
+        "price": 85000,
+        "discountPercentage": 12,
+        "category": {
+          "_id": "60d21b4667d0d8992e610c88",
+          "name": "Laptops"
+        },
+        "store": {
+          "_id": "60d21b4667d0d8992e610c86",
+          "name": "Electronics Hub",
+          "logo": "https://example.com/logo2.jpg"
+        },
+        "averageRating": 4.7,
+        "reviewCount": 35,
+        "tags": ["laptop", "electronics", "computer"],
+        "type": "physical",
+        "popularityIndex": 80
       }
     ]
   }
@@ -2394,9 +2558,9 @@ Authorization: Bearer <token>
 
 ## Product Categories API
 
-These endpoints allow users to interact with product categories on the platform.
+These endpoints allow users to interact with product categories on the platform. Categories now support a hierarchical structure with parent and subcategories.
 
-### Get All Product Categories
+### Get All Parent Product Categories
 
 ```
 GET /api/product-categories
@@ -2408,6 +2572,8 @@ GET /api/product-categories
 - `limit` (optional): Number of results per page (default: 20)
 
 **Response:**
+
+This endpoint now returns only parent categories (categories with no parentId).
 
 ```json
 {
@@ -2424,6 +2590,7 @@ GET /api/product-categories
       {
         "_id": "60d21b4667d0d8992e610c85",
         "name": "Electronics",
+        "parentId": null,
         "image": "https://example.com/electronics.jpg",
         "popularityIndex": 95,
         "noOfProducts": 120,
@@ -2444,11 +2611,72 @@ GET /api/product-categories
 }
 ```
 
+### Get Subcategories for a Parent Category
+
+```
+GET /api/product-categories/sub
+```
+
+**Query Parameters:**
+
+- `parentCategoryId` (required): ID of the parent category
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 20)
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 3,
+  "pagination": {
+    "total": 3,
+    "page": 1,
+    "pages": 1,
+    "limit": 20
+  },
+  "data": {
+    "subcategories": [
+      {
+        "_id": "60d21b4667d0d8992e610c87",
+        "name": "Smartphones",
+        "parentId": "60d21b4667d0d8992e610c85",
+        "image": "https://example.com/smartphones.jpg",
+        "popularityIndex": 90,
+        "noOfProducts": 45,
+        "createdAt": "2023-01-01T12:00:00.000Z",
+        "updatedAt": "2023-01-01T12:00:00.000Z"
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c88",
+        "name": "Laptops",
+        "parentId": "60d21b4667d0d8992e610c85",
+        "image": "https://example.com/laptops.jpg",
+        "popularityIndex": 85,
+        "noOfProducts": 35,
+        "createdAt": "2023-01-01T12:00:00.000Z",
+        "updatedAt": "2023-01-01T12:00:00.000Z"
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c89",
+        "name": "Tablets",
+        "parentId": "60d21b4667d0d8992e610c85",
+        "image": "https://example.com/tablets.jpg",
+        "popularityIndex": 80,
+        "noOfProducts": 25,
+        "createdAt": "2023-01-01T12:00:00.000Z",
+        "updatedAt": "2023-01-01T12:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
 ## Store Categories API
 
-These endpoints allow users to interact with store categories on the platform.
+These endpoints allow users to interact with store categories on the platform. Categories now support a hierarchical structure with parent and subcategories.
 
-### Get All Store Categories
+### Get All Parent Store Categories
 
 ```
 GET /api/store-categories
@@ -2488,6 +2716,67 @@ GET /api/store-categories
         "image": "https://example.com/fashion-stores.jpg",
         "popularityIndex": 90,
         "noOfStores": 80,
+        "createdAt": "2023-01-01T12:00:00.000Z",
+        "updatedAt": "2023-01-01T12:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+### Get Subcategories for a Parent Store Category
+
+```
+GET /api/store-categories/sub
+```
+
+**Query Parameters:**
+
+- `parentCategoryId` (required): ID of the parent category
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Number of results per page (default: 20)
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "results": 3,
+  "pagination": {
+    "total": 3,
+    "page": 1,
+    "pages": 1,
+    "limit": 20
+  },
+  "data": {
+    "subcategories": [
+      {
+        "_id": "60d21b4667d0d8992e610c87",
+        "name": "Men's Clothing Stores",
+        "parentId": "60d21b4667d0d8992e610c86",
+        "image": "https://example.com/mens-clothing.jpg",
+        "popularityIndex": 85,
+        "noOfStores": 30,
+        "createdAt": "2023-01-01T12:00:00.000Z",
+        "updatedAt": "2023-01-01T12:00:00.000Z"
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c88",
+        "name": "Women's Clothing Stores",
+        "parentId": "60d21b4667d0d8992e610c86",
+        "image": "https://example.com/womens-clothing.jpg",
+        "popularityIndex": 88,
+        "noOfStores": 35,
+        "createdAt": "2023-01-01T12:00:00.000Z",
+        "updatedAt": "2023-01-01T12:00:00.000Z"
+      },
+      {
+        "_id": "60d21b4667d0d8992e610c89",
+        "name": "Footwear Stores",
+        "parentId": "60d21b4667d0d8992e610c86",
+        "image": "https://example.com/footwear.jpg",
+        "popularityIndex": 80,
+        "noOfStores": 25,
         "createdAt": "2023-01-01T12:00:00.000Z",
         "updatedAt": "2023-01-01T12:00:00.000Z"
       }

@@ -30,12 +30,13 @@ export const getProductCategories = catchAsync(
     const limit = parseInt(req.query.limit as string) || 20; // Higher default limit for categories
     const skip = (page - 1) * limit;
 
-    const categories = await ProductCategory.find()
+    // Only return parent categories (where parentId is null or undefined)
+    const categories = await ProductCategory.find({ parentId: null })
       .sort({ popularityIndex: -1 })
       .skip(skip)
       .limit(limit);
 
-    const total = await ProductCategory.countDocuments();
+    const total = await ProductCategory.countDocuments({ parentId: null });
 
     res.status(200).json({
       status: "success",
@@ -194,6 +195,54 @@ export const updateProductCounts = catchAsync(
     res.status(200).json({
       status: "success",
       message: "Product counts updated for all categories",
+    });
+  }
+);
+
+/**
+ * Get subcategories for a parent category
+ * @route GET /api/product-categories/sub
+ * @access Public
+ */
+export const getSubProductCategories = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const parentCategoryId = req.query.parentCategoryId as string;
+
+    if (!parentCategoryId) {
+      return next(new AppError("Parent category ID is required", 400));
+    }
+
+    // Validate if parent category exists
+    const parentCategory = await ProductCategory.findById(parentCategoryId);
+    if (!parentCategory) {
+      return next(new AppError("Parent category not found", 404));
+    }
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const subcategories = await ProductCategory.find({
+      parentId: parentCategoryId,
+    })
+      .sort({ popularityIndex: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await ProductCategory.countDocuments({
+      parentId: parentCategoryId,
+    });
+
+    res.status(200).json({
+      status: "success",
+      results: subcategories.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
+      data: { subcategories },
     });
   }
 );

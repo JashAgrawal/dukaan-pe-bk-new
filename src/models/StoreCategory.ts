@@ -5,6 +5,7 @@ export interface IStoreCategory extends Document {
   image: string;
   popularityIndex: number;
   noOfStores: number;
+  parentId?: Schema.Types.ObjectId;
   isDeleted: boolean;
   deletedAt?: Date;
   createdAt: Date;
@@ -30,6 +31,11 @@ const storeCategorySchema = new Schema<IStoreCategory>(
     noOfStores: {
       type: Number,
       default: 0,
+    },
+    parentId: {
+      type: Schema.Types.ObjectId,
+      ref: "StoreCategory",
+      default: null,
     },
     isDeleted: {
       type: Boolean,

@@ -370,9 +370,16 @@ export const getCatalogueProductsByCategory = catchAsync(
       return next(new AppError("Category not found", 404));
     }
 
+    // Get all subcategories of this category
+    const subcategories = await ProductCategory.find({ parentId: categoryId });
+    const subcategoryIds = subcategories.map((subcat) => subcat._id);
+
+    // Include the main category and all its subcategories in the query
+    const categoryIds = [categoryId, ...subcategoryIds];
+
     const query = {
       ...buildBaseQuery(req),
-      category: categoryId,
+      category: { $in: categoryIds },
     };
 
     const catalogueProducts = await CatalogueProduct.find(query)

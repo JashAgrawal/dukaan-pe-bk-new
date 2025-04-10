@@ -14,6 +14,7 @@ import {
   getStoresByServiceType,
   getStoresByFavouriteCount,
   searchStores,
+  searchStoresWithFilters,
   getMyStores,
 } from "../controllers/storeController";
 import { protect, restrictTo } from "../middlewares/authMiddleware";
@@ -32,6 +33,7 @@ router.get("/product-category/:categoryId", getStoresByProductCategory);
 router.get("/service-type/:type", getStoresByServiceType);
 router.get("/by-favourite", getStoresByFavouriteCount);
 router.get("/search", searchStores);
+router.get("/search-with-filters", searchStoresWithFilters);
 router.get("/:id", getStore);
 
 // Protected routes

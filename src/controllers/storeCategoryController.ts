@@ -30,12 +30,13 @@ export const getStoreCategories = catchAsync(
     const limit = parseInt(req.query.limit as string) || 20; // Higher default limit for categories
     const skip = (page - 1) * limit;
 
-    const categories = await StoreCategory.find()
+    // Only return parent categories (where parentId is null or undefined)
+    const categories = await StoreCategory.find({ parentId: null })
       .sort({ popularityIndex: -1 })
       .skip(skip)
       .limit(limit);
 
-    const total = await StoreCategory.countDocuments();
+    const total = await StoreCategory.countDocuments({ parentId: null });
 
     res.status(200).json({
       status: "success",
@@ -189,6 +190,54 @@ export const updateStoreCounts = catchAsync(
     res.status(200).json({
       status: "success",
       message: "Store counts updated for all categories",
+    });
+  }
+);
+
+/**
+ * Get subcategories for a parent category
+ * @route GET /api/store-categories/sub
+ * @access Public
+ */
+export const getSubStoreCategories = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const parentCategoryId = req.query.parentCategoryId as string;
+
+    if (!parentCategoryId) {
+      return next(new AppError("Parent category ID is required", 400));
+    }
+
+    // Validate if parent category exists
+    const parentCategory = await StoreCategory.findById(parentCategoryId);
+    if (!parentCategory) {
+      return next(new AppError("Parent category not found", 404));
+    }
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const subcategories = await StoreCategory.find({
+      parentId: parentCategoryId,
+    })
+      .sort({ popularityIndex: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await StoreCategory.countDocuments({
+      parentId: parentCategoryId,
+    });
+
+    res.status(200).json({
+      status: "success",
+      results: subcategories.length,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
+      data: { subcategories },
     });
   }
 );

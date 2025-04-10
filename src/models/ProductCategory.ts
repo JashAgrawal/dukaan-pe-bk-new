@@ -5,6 +5,7 @@ export interface IProductCategory extends Document {
   image: string;
   popularityIndex: number;
   noOfProducts: number;
+  parentId?: Schema.Types.ObjectId;
   isDeleted: boolean;
   deletedAt?: Date;
   createdAt: Date;
@@ -30,6 +31,11 @@ const productCategorySchema = new Schema<IProductCategory>(
     noOfProducts: {
       type: Number,
       default: 0,
+    },
+    parentId: {
+      type: Schema.Types.ObjectId,
+      ref: "ProductCategory",
+      default: null,
     },
     isDeleted: {
       type: Boolean,
