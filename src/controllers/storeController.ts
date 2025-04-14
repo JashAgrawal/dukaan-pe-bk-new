@@ -379,7 +379,7 @@ export const getTopSellingStores = catchAsync(
 export const getBestRatedStores = catchAsync(
   async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
-    const minReviews = parseInt(req.query.minReviews as string) || 5;
+    const minReviews = parseInt(req.query.minReviews as string) || 0;
     const query = {
       ...buildBaseQuery(req),
       reviewCount: { $gte: minReviews },
