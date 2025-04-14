@@ -19,10 +19,12 @@ export const addToWishlist = catchAsync(
       return next(new AppError("Store not found", 404));
     }
 
-    // Check if already in wishlist
+    // Check if already in wishlist - include soft-deleted entries
+    // by setting the includeSoftDeleted flag that's handled by the pre-find middleware
     const existingWishlist = await StoreWishlist.findOne({
       store,
       user: userId,
+      includeSoftDeleted: true, // This flag will be processed by the pre-find middleware
     });
 
     if (existingWishlist) {
