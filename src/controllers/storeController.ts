@@ -393,6 +393,8 @@ export const getBestRatedStores = catchAsync(
         select: "name",
       });
 
+    console.log(stores.length);
+
     res.status(200).json({
       status: "success",
       results: stores.length,
