@@ -6,6 +6,8 @@ export interface IProductReview extends Document {
   user: Schema.Types.ObjectId;
   rating: number;
   review: string;
+  images: string[];
+  tags: string[];
   isDeleted: boolean;
   deletedAt?: Date;
   createdAt: Date;
@@ -33,6 +35,14 @@ const productReviewSchema = new Schema<IProductReview>(
     review: {
       type: String,
       required: [true, "Review text is required"],
+    },
+    images: {
+      type: [String],
+      default: [],
+    },
+    tags: {
+      type: [String],
+      default: [],
     },
     isDeleted: {
       type: Boolean,
@@ -62,32 +72,32 @@ productReviewSchema.index({ product: 1, user: 1 }, { unique: true });
 // Update product's average rating and review count when a review is added or updated
 productReviewSchema.post("save", async function () {
   const productId = this.product;
-  
+
   // Calculate new average rating
   const stats = await this.model("ProductReview").aggregate([
     {
-      $match: { product: productId, isDeleted: false }
+      $match: { product: productId, isDeleted: false },
     },
     {
       $group: {
         _id: "$product",
         avgRating: { $avg: "$rating" },
-        count: { $sum: 1 }
-      }
-    }
+        count: { $sum: 1 },
+      },
+    },
   ]);
-  
+
   // Update product with new stats
   if (stats.length > 0) {
     await Product.findByIdAndUpdate(productId, {
       averageRating: stats[0].avgRating,
-      reviewCount: stats[0].count
+      reviewCount: stats[0].count,
     });
   } else {
     // If no reviews, reset to default values
     await Product.findByIdAndUpdate(productId, {
       averageRating: 0,
-      reviewCount: 0
+      reviewCount: 0,
     });
   }
 });
@@ -96,32 +106,32 @@ productReviewSchema.post("save", async function () {
 productReviewSchema.post(/^findOneAndUpdate/, async function (doc) {
   if (doc && doc.isDeleted) {
     const productId = doc.product;
-    
+
     // Calculate new average rating excluding deleted reviews
     const stats = await mongoose.model("ProductReview").aggregate([
       {
-        $match: { product: productId, isDeleted: false }
+        $match: { product: productId, isDeleted: false },
       },
       {
         $group: {
           _id: "$product",
           avgRating: { $avg: "$rating" },
-          count: { $sum: 1 }
-        }
-      }
+          count: { $sum: 1 },
+        },
+      },
     ]);
-    
+
     // Update product with new stats
     if (stats.length > 0) {
       await Product.findByIdAndUpdate(productId, {
         averageRating: stats[0].avgRating,
-        reviewCount: stats[0].count
+        reviewCount: stats[0].count,
       });
     } else {
       // If no reviews, reset to default values
       await Product.findByIdAndUpdate(productId, {
         averageRating: 0,
-        reviewCount: 0
+        reviewCount: 0,
       });
     }
   }

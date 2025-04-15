@@ -6,6 +6,8 @@ export interface IStoreReview extends Document {
   user: Schema.Types.ObjectId;
   rating: number;
   review: string;
+  images: string[];
+  tags: string[];
   isDeleted: boolean;
   deletedAt?: Date;
   createdAt: Date;
@@ -33,6 +35,14 @@ const storeReviewSchema = new Schema<IStoreReview>(
     review: {
       type: String,
       required: [true, "Review text is required"],
+    },
+    images: {
+      type: [String],
+      default: [],
+    },
+    tags: {
+      type: [String],
+      default: [],
     },
     isDeleted: {
       type: Boolean,
@@ -62,32 +72,32 @@ storeReviewSchema.index({ store: 1, user: 1 }, { unique: true });
 // Update store's average rating and review count when a review is added or updated
 storeReviewSchema.post("save", async function () {
   const storeId = this.store;
-  
+
   // Calculate new average rating
   const stats = await this.model("StoreReview").aggregate([
     {
-      $match: { store: storeId, isDeleted: false }
+      $match: { store: storeId, isDeleted: false },
     },
     {
       $group: {
         _id: "$store",
         avgRating: { $avg: "$rating" },
-        count: { $sum: 1 }
-      }
-    }
+        count: { $sum: 1 },
+      },
+    },
   ]);
-  
+
   // Update store with new stats
   if (stats.length > 0) {
     await Store.findByIdAndUpdate(storeId, {
       averageRating: stats[0].avgRating,
-      reviewCount: stats[0].count
+      reviewCount: stats[0].count,
     });
   } else {
     // If no reviews, reset to default values
     await Store.findByIdAndUpdate(storeId, {
       averageRating: 0,
-      reviewCount: 0
+      reviewCount: 0,
     });
   }
 });
@@ -96,32 +106,32 @@ storeReviewSchema.post("save", async function () {
 storeReviewSchema.post(/^findOneAndUpdate/, async function (doc) {
   if (doc && doc.isDeleted) {
     const storeId = doc.store;
-    
+
     // Calculate new average rating excluding deleted reviews
     const stats = await mongoose.model("StoreReview").aggregate([
       {
-        $match: { store: storeId, isDeleted: false }
+        $match: { store: storeId, isDeleted: false },
       },
       {
         $group: {
           _id: "$store",
           avgRating: { $avg: "$rating" },
-          count: { $sum: 1 }
-        }
-      }
+          count: { $sum: 1 },
+        },
+      },
     ]);
-    
+
     // Update store with new stats
     if (stats.length > 0) {
       await Store.findByIdAndUpdate(storeId, {
         averageRating: stats[0].avgRating,
-        reviewCount: stats[0].count
+        reviewCount: stats[0].count,
       });
     } else {
       // If no reviews, reset to default values
       await Store.findByIdAndUpdate(storeId, {
         averageRating: 0,
-        reviewCount: 0
+        reviewCount: 0,
       });
     }
   }
