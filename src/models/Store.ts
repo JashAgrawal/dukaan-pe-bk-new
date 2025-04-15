@@ -31,6 +31,11 @@ export interface IStore extends Document {
   averageRating: number;
   reviewCount: number;
   wishlistCount: number;
+  facilities: string[];
+  termsAndConditions: string;
+  returnPolicy: string;
+  displayTags: string[];
+  sysTags: string[];
   location: {
     type: string;
     coordinates: number[];
@@ -174,6 +179,26 @@ const storeSchema = new Schema<IStore>(
       type: Number,
       default: 0,
     },
+    facilities: {
+      type: [String],
+      default: [],
+    },
+    termsAndConditions: {
+      type: String,
+      default: "",
+    },
+    returnPolicy: {
+      type: String,
+      default: "",
+    },
+    displayTags: {
+      type: [String],
+      default: [],
+    },
+    sysTags: {
+      type: [String],
+      default: [],
+    },
     location: {
       type: {
         type: String,
@@ -220,6 +245,8 @@ storeSchema.index({
   name: "text",
   tagline: "text",
   description: "text",
+  displayTags: "text",
+  facilities: "text",
 });
 
 // Create geospatial index for location-based queries

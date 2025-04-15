@@ -51,6 +51,17 @@ All API endpoints are prefixed with:
 - `GET /api/stores/search` - Search stores
 - `GET /api/stores/search-with-filters` - Search stores with advanced filters
 
+### Store Images
+
+[View detailed documentation](./store-images.md)
+
+- `POST /api/store-images` - Create a new store images collection
+- `GET /api/store-images/store/:storeId` - Get all image collections for a store
+- `GET /api/store-images/:id` - Get a specific image collection
+- `PATCH /api/store-images/:id` - Update an image collection
+- `DELETE /api/store-images/:id` - Delete an image collection
+- `PATCH /api/store-images/:id/restore` - Restore a deleted image collection
+
 ### Store Category
 
 [View detailed documentation](./store-category.md)

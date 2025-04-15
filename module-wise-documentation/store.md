@@ -70,6 +70,11 @@ GET /api/stores
           "https://example.com/image1.jpg",
           "https://example.com/image2.jpg"
         ],
+        "facilities": ["Parking", "WiFi", "Air Conditioning"],
+        "termsAndConditions": "Detailed terms and conditions for the store",
+        "returnPolicy": "30-day return policy with receipt",
+        "displayTags": ["Trending", "Popular", "New Arrival"],
+        "sysTags": ["verified", "premium"],
         "popularity_index": 95,
         "isBrand": true,
         "isOpen": true,
@@ -121,6 +126,11 @@ GET /api/stores
           "https://example.com/image3.jpg",
           "https://example.com/image4.jpg"
         ],
+        "facilities": ["Parking", "WiFi", "Home Delivery"],
+        "termsAndConditions": "Detailed terms and conditions for the electronics store",
+        "returnPolicy": "15-day return policy with receipt and original packaging",
+        "displayTags": ["Best Seller", "Top Rated", "Featured"],
+        "sysTags": ["verified", "premium", "fast-delivery"],
         "popularity_index": 90,
         "isBrand": true,
         "isOpen": true,
@@ -178,6 +188,11 @@ Authorization: Bearer <token>
     "https://example.com/newimage1.jpg",
     "https://example.com/newimage2.jpg"
   ],
+  "facilities": ["Parking", "WiFi", "Restroom"],
+  "termsAndConditions": "Terms and conditions for the new store",
+  "returnPolicy": "7-day return policy with receipt",
+  "displayTags": ["New", "Trending"],
+  "sysTags": ["verified"],
   "isBrand": true,
   "isOpen": true,
   "opensAt": "09:00",
@@ -560,6 +575,8 @@ GET /api/stores/search-with-filters
 - `query` (optional): Search query for text search
 - `categoryIds` (optional): Comma-separated list of category IDs (includes subcategories automatically)
 - `tags` (optional): Comma-separated list of tags
+- `displayTags` (optional): Comma-separated list of display tags
+- `sysTags` (optional): Comma-separated list of system tags
 - `type` (optional): Store type filter
 - `isOpen` (optional): Filter by open status (true/false)
 - `isBrand` (optional): Filter by brand status (true/false)

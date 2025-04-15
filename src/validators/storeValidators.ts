@@ -86,6 +86,17 @@ export const storeSchema = Joi.object({
   allImages: Joi.array().items(Joi.string()).messages({
     "array.base": "All images must be an array",
   }),
+  facilities: Joi.array().items(Joi.string()).messages({
+    "array.base": "Facilities must be an array",
+  }),
+  termsAndConditions: Joi.string(),
+  returnPolicy: Joi.string(),
+  displayTags: Joi.array().items(Joi.string()).messages({
+    "array.base": "Display tags must be an array",
+  }),
+  sysTags: Joi.array().items(Joi.string()).messages({
+    "array.base": "System tags must be an array",
+  }),
   location: Joi.object({
     type: Joi.string().default("Point"),
     coordinates: Joi.array().items(Joi.number()).length(2).required().messages({
@@ -167,6 +178,17 @@ export const storeUpdateSchema = Joi.object({
   mainImage: Joi.string(),
   allImages: Joi.array().items(Joi.string()).messages({
     "array.base": "All images must be an array",
+  }),
+  facilities: Joi.array().items(Joi.string()).messages({
+    "array.base": "Facilities must be an array",
+  }),
+  termsAndConditions: Joi.string(),
+  returnPolicy: Joi.string(),
+  displayTags: Joi.array().items(Joi.string()).messages({
+    "array.base": "Display tags must be an array",
+  }),
+  sysTags: Joi.array().items(Joi.string()).messages({
+    "array.base": "System tags must be an array",
   }),
   location: Joi.object({
     type: Joi.string().default("Point"),

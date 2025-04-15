@@ -679,6 +679,12 @@ export const searchStoresWithFilters = catchAsync(
       ? (req.query.categoryIds as string).split(",")
       : [];
     const tags = req.query.tags ? (req.query.tags as string).split(",") : [];
+    const displayTags = req.query.displayTags
+      ? (req.query.displayTags as string).split(",")
+      : [];
+    const sysTags = req.query.sysTags
+      ? (req.query.sysTags as string).split(",")
+      : [];
     const type = req.query.type as string;
     const isOpen = req.query.isOpen === "true";
     const isBrand = req.query.isBrand === "true";
@@ -711,6 +717,21 @@ export const searchStoresWithFilters = catchAsync(
       // Include both parent categories and their subcategories
       const allCategoryIds = [...categoryIds, ...subcategoryIds];
       filterQuery.category = { $in: allCategoryIds };
+    }
+
+    // Add tags filters
+    if (tags.length > 0) {
+      filterQuery.tags = { $in: tags };
+    }
+
+    // Add displayTags filter
+    if (displayTags.length > 0) {
+      filterQuery.displayTags = { $in: displayTags };
+    }
+
+    // Add sysTags filter
+    if (sysTags.length > 0) {
+      filterQuery.sysTags = { $in: sysTags };
     }
 
     // Add type filter
@@ -841,6 +862,8 @@ export const searchStores = catchAsync(async (req: Request, res: Response) => {
         { name: { $regex: searchTerm, $options: "i" } },
         { tagline: { $regex: searchTerm, $options: "i" } },
         { description: { $regex: searchTerm, $options: "i" } },
+        { displayTags: { $regex: searchTerm, $options: "i" } },
+        { facilities: { $regex: searchTerm, $options: "i" } },
       ],
     };
 

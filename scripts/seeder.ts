@@ -5,6 +5,7 @@ import { User } from "../src/models/User";
 import { StoreCategory } from "../src/models/StoreCategory";
 import { ProductCategory } from "../src/models/ProductCategory";
 import { Store } from "../src/models/Store";
+import { StoreImages } from "../src/models/StoreImages";
 import { Product } from "../src/models/Product";
 import { ServiceTypeEnum } from "../src/models/ServiceType";
 import { ProductTypeEnum } from "../src/models/ProductType";
@@ -57,6 +58,7 @@ const clearData = async (): Promise<void> => {
     await User.deleteMany({ role: "seller" });
     await StoreCategory.deleteMany({});
     await ProductCategory.deleteMany({});
+    await StoreImages.deleteMany({});
     await Store.deleteMany({});
     await Product.deleteMany({});
     logger.info("Data cleared successfully");
@@ -413,6 +415,11 @@ const createStores = async (
     coverImage: string;
     mainImage: string;
     allImages: string[];
+    facilities: string[];
+    termsAndConditions: string;
+    returnPolicy: string;
+    displayTags: string[];
+    sysTags: string[];
     popularity_index: number;
     isBrand: boolean;
     isOpen: boolean;
@@ -458,6 +465,76 @@ const createStores = async (
       pincodes.push(faker.string.numeric(6));
     }
 
+    // Generate 2-5 facilities
+    const facilities: string[] = [];
+    const facilityOptions = [
+      "Parking",
+      "WiFi",
+      "Air Conditioning",
+      "Home Delivery",
+      "Restroom",
+      "Wheelchair Access",
+      "Fitting Rooms",
+      "Gift Wrapping",
+      "Cafe",
+      "Play Area",
+    ];
+    const numFacilities = Math.floor(Math.random() * 4) + 2; // 2 to 5
+
+    for (let i = 0; i < numFacilities; i++) {
+      const facility =
+        facilityOptions[Math.floor(Math.random() * facilityOptions.length)];
+      if (!facilities.includes(facility)) {
+        facilities.push(facility);
+      }
+    }
+
+    // Generate 2-4 display tags
+    const displayTags: string[] = [];
+    const displayTagOptions = [
+      "Trending",
+      "Popular",
+      "New Arrival",
+      "Best Seller",
+      "Top Rated",
+      "Featured",
+      "Sale",
+      "Limited Edition",
+      "Exclusive",
+      "Premium",
+    ];
+    const numDisplayTags = Math.floor(Math.random() * 3) + 2; // 2 to 4
+
+    for (let i = 0; i < numDisplayTags; i++) {
+      const tag =
+        displayTagOptions[Math.floor(Math.random() * displayTagOptions.length)];
+      if (!displayTags.includes(tag)) {
+        displayTags.push(tag);
+      }
+    }
+
+    // Generate 1-3 system tags
+    const sysTags: string[] = [];
+    const sysTagOptions = [
+      "verified",
+      "premium",
+      "fast-delivery",
+      "eco-friendly",
+      "organic",
+      "handmade",
+      "imported",
+      "local",
+    ];
+    const numSysTags = Math.floor(Math.random() * 3) + 1; // 1 to 3
+
+    for (let i = 0; i < numSysTags; i++) {
+      const tag =
+        sysTagOptions[Math.floor(Math.random() * sysTagOptions.length)];
+      if (!sysTags.includes(tag)) {
+        sysTags.push(tag);
+      }
+    }
+
     stores.push({
       name: faker.company.name(),
       tagline: faker.company.catchPhrase(),
@@ -478,6 +555,16 @@ const createStores = async (
       coverImage: "/static/images/uploads/storeorproductMainImage.png",
       mainImage: "/static/images/uploads/storeorproductMainImage.png",
       allImages: ["/static/images/uploads/storeorproductMainImage.png"],
+      facilities: facilities,
+      termsAndConditions: faker.lorem.paragraphs(2),
+      returnPolicy: `${faker.number.int({
+        min: 7,
+        max: 30,
+      })}-day return policy with receipt${
+        faker.datatype.boolean() ? " and original packaging" : ""
+      }.`,
+      displayTags: displayTags,
+      sysTags: sysTags,
       popularity_index: faker.number.int({ min: 0, max: 100 }),
       isBrand: faker.datatype.boolean(),
       isOpen: true,
@@ -686,6 +773,70 @@ const createProducts = async (
   logger.info(`Created a total of ${totalProducts} products`);
 };
 
+// Create store images collections for each store
+const createStoreImages = async (
+  storeIds: mongoose.Types.ObjectId[]
+): Promise<void> => {
+  let totalCollections = 0;
+
+  interface StoreImagesData {
+    heading: string;
+    store: mongoose.Types.ObjectId;
+    images: string[];
+  }
+
+  // Collection types with their headings
+  const collectionTypes = [
+    { type: "gallery", heading: "Store Gallery" },
+    { type: "banners", heading: "Promotional Banners" },
+    { type: "menu", heading: "Menu" },
+  ];
+
+  for (const storeId of storeIds) {
+    const storeImagesCollections: StoreImagesData[] = [];
+
+    // Create 2-4 random collections for each store
+    const numCollections = Math.floor(Math.random() * 3) + 2; // 2 to 4
+    const selectedTypes = [...collectionTypes]
+      .sort(() => 0.5 - Math.random())
+      .slice(0, numCollections);
+
+    for (const collectionType of selectedTypes) {
+      // Generate 3-6 images for each collection
+      const images: string[] = [];
+      const numImages = Math.floor(Math.random() * 4) + 3; // 3 to 6
+
+      for (let i = 0; i < numImages; i++) {
+        images.push("/static/images/uploads/storeorproductMainImage.png");
+      }
+
+      storeImagesCollections.push({
+        heading: collectionType.heading,
+        store: storeId,
+        images: images,
+      });
+    }
+
+    try {
+      const createdCollections = await StoreImages.create(
+        storeImagesCollections
+      );
+      totalCollections += createdCollections.length;
+      logger.info(
+        `Created ${createdCollections.length} image collections for store ${storeId}`
+      );
+    } catch (error) {
+      logger.error(
+        `Error creating image collections for store ${storeId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  }
+
+  logger.info(`Created a total of ${totalCollections} store image collections`);
+};
+
 // Main seeder function
 const seedData = async (clearExisting: boolean = false): Promise<void> => {
   try {
@@ -704,6 +855,7 @@ const seedData = async (clearExisting: boolean = false): Promise<void> => {
       productCategoryIds
     );
     await createProducts(storeIds, productCategoryIds, 25);
+    await createStoreImages(storeIds);
 
     logger.info("Data seeding completed successfully");
   } catch (error) {
