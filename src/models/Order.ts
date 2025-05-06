@@ -25,6 +25,8 @@ export interface IOrderItem {
   returnReason?: string;
 }
 
+export type DeliveryType = "home_delivery" | "pickup";
+
 export interface IOrder extends Document {
   orderNumber: string;
   cartSnapshot: Schema.Types.ObjectId;
@@ -46,6 +48,9 @@ export interface IOrder extends Document {
   orderStatus: OrderStatusType;
   specialNoteBuyer?: string;
   specialNoteSeller?: string;
+  systemNote?: string;
+  isDelivery: boolean;
+  deliveryType: DeliveryType;
   deliveryAddressId: Schema.Types.ObjectId;
   isActive: boolean;
   cancelledAt?: Date;
@@ -197,6 +202,20 @@ const orderSchema = new Schema<IOrder>(
     specialNoteSeller: {
       type: String,
     },
+    systemNote: {
+      type: String,
+    },
+    isDelivery: {
+      type: Boolean,
+      default: true,
+      required: [true, "Delivery status is required"],
+    },
+    deliveryType: {
+      type: String,
+      enum: ["home_delivery", "pickup"],
+      default: "home_delivery",
+      required: [true, "Delivery type is required"],
+    },
     deliveryAddressId: {
       type: Schema.Types.ObjectId,
       ref: "Address",
@@ -219,23 +238,24 @@ const orderSchema = new Schema<IOrder>(
 );
 
 // Generate unique order number before saving
+// Only used as a fallback if orderNumber is not set explicitly
 orderSchema.pre("save", async function (next) {
-  if (this.isNew) {
+  if (this.isNew && !this.orderNumber) {
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const day = date.getDate().toString().padStart(2, "0");
 
     // Get count of orders for today to generate sequential number
-    const todayStart = new Date(date.setHours(0, 0, 0, 0));
-    const todayEnd = new Date(date.setHours(23, 59, 59, 999));
+    const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
+    const todayEnd = new Date(new Date().setHours(23, 59, 59, 999));
 
     const count = await mongoose.model("Order").countDocuments({
       createdAt: { $gte: todayStart, $lte: todayEnd },
     });
 
-    // Format: ORD-YYMMDD-XXXX (XXXX is sequential number for the day)
-    this.orderNumber = `ORD-${year}${month}${day}-${(count + 1)
+    // Format: #YYMMDD-XXXX (XXXX is sequential number for the day)
+    this.orderNumber = `#${year}${month}${day}-${(count + 1)
       .toString()
       .padStart(4, "0")}`;
   }

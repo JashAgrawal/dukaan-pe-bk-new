@@ -246,3 +246,25 @@ export const getSubProductCategories = catchAsync(
     });
   }
 );
+
+export const getStoreProductCategories = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const storeId = req.params.storeId;
+
+    // Check if store exists
+    const store = await Store.findById(storeId);
+    if (!store) {
+      return next(new AppError("Store not found", 404));
+    }
+
+    const categories = await ProductCategory.find({
+      _id: { $in: store.productCategories },
+    });
+
+    res.status(200).json({
+      status: "success",
+      results: categories.length,
+      data: { categories },
+    });
+  }
+);

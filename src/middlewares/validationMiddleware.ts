@@ -14,6 +14,8 @@ export const validateRequest = (
   type: ValidationType = "body"
 ) => {
   return (req: Request, res: Response, next: NextFunction) => {
+    console.log("Validating request");
+    console.log(req.body);
     const dataToValidate =
       type === "body" ? req.body : type === "query" ? req.query : req.params;
 

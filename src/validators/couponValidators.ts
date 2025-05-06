@@ -46,3 +46,27 @@ export const couponUpdateSchema = Joi.object({
   isActive: Joi.boolean(),
   products: Joi.array().items(Joi.string()),
 });
+
+export const availableCouponsSchema = Joi.object({
+  storeId: Joi.string().required().messages({
+    "string.empty": "Store ID is required",
+    "any.required": "Store ID is required",
+  }),
+  cartId: Joi.string().messages({
+    "string.empty": "Cart ID must be a valid ID",
+  }),
+});
+
+export const validateCouponSchema = Joi.object({
+  couponCode: Joi.string().required().messages({
+    "string.empty": "Coupon code is required",
+    "any.required": "Coupon code is required",
+  }),
+  storeId: Joi.string().required().messages({
+    "string.empty": "Store ID is required",
+    "any.required": "Store ID is required",
+  }),
+  cartId: Joi.string().messages({
+    "string.empty": "Cart ID must be a valid ID",
+  }),
+});

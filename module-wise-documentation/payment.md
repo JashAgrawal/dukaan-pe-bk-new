@@ -36,29 +36,13 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "status": "success",
+  "success": true,
   "data": {
-    "razorpayOrder": {
-      "id": "order_123456789",
-      "entity": "order",
-      "amount": 81000,
-      "amount_paid": 0,
-      "amount_due": 81000,
-      "currency": "INR",
-      "receipt": "ORD-1234567890",
-      "status": "created",
-      "attempts": 0,
-      "notes": {
-        "orderId": "60d21b4667d0d8992e610c85"
-      },
-      "created_at": 1609502400
-    },
-    "order": {
-      "_id": "60d21b4667d0d8992e610c85",
-      "orderNumber": "ORD-1234567890",
-      "total": 81000
-    },
-    "key": "rzp_test_1234567890"
+    "razorpayOrderId": "order_123456789",
+    "amount": 810,
+    "currency": "INR",
+    "key": "rzp_test_1234567890",
+    "orderId": "60d21b4667d0d8992e610c85"
   }
 }
 ```

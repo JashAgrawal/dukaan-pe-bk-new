@@ -17,4 +17,11 @@ export const productWishlistSchema = Joi.object({
       'string.empty': 'Product ID is required',
       'any.invalid': 'Product ID must be a valid ID',
     }),
+  store: Joi.string()
+    .required()
+    .custom(objectIdValidator)
+    .messages({
+      'string.empty': 'Store ID is required',
+      'any.invalid': 'Store ID must be a valid ID',
+    }),
 });

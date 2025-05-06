@@ -28,9 +28,14 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "addressId": "60d21b4667d0d8992e610c85",
-  "paymentMethod": "razorpay",
-  "couponCode": "WELCOME10"
+  "cartId": "60d21b4667d0d8992e610c85",
+  "paymentType": "cod",
+  "deliveryAddressId": "60d21b4667d0d8992e610c86",
+  "isDelivery": true,
+  "deliveryType": "home_delivery",
+  "specialNoteBuyer": "Please deliver after 6 PM",
+  "specialNoteSeller": "Fragile items, handle with care",
+  "systemNote": "Order placed via mobile app"
 }
 ```
 
@@ -38,27 +43,21 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "status": "success",
+  "success": true,
   "data": {
     "order": {
       "_id": "60d21b4667d0d8992e610c85",
-      "orderNumber": "ORD-1234567890",
+      "orderNumber": "#230615-0001",
       "user": "60d21b4667d0d8992e610c85",
+      "store": "60d21b4667d0d8992e610c86",
       "items": [
         {
-          "product": {
-            "_id": "60d21b4667d0d8992e610c85",
-            "name": "Smartphone X",
-            "mainImage": "https://example.com/smartphone.jpg"
-          },
+          "product": "60d21b4667d0d8992e610c87",
           "quantity": 2,
-          "variant": {
-            "color": "Black",
-            "storage": "128GB"
-          },
           "price": 45000,
-          "totalPrice": 90000,
-          "store": "60d21b4667d0d8992e610c86"
+          "discountedPrice": 40000,
+          "totalPrice": 80000,
+          "status": "active"
         }
       ],
       "storeOrders": [
@@ -101,13 +100,26 @@ Authorization: Bearer <token>
         "discount": 10,
         "discountType": "percentage"
       },
-      "subtotal": 90000,
-      "discount": 9000,
-      "total": 81000,
-      "status": "pending",
-      "createdAt": "2023-01-01T12:00:00.000Z",
-      "updatedAt": "2023-01-01T12:00:00.000Z"
-    }
+      "paymentType": "cod",
+      "paymentStatus": "pending",
+      "totalWithoutDiscount": 90000,
+      "totalPayableAmount": 80000,
+      "totalDiscount": 10000,
+      "couponDiscount": 5000,
+      "offerDiscount": 5000,
+      "deliveryCharges": 0,
+      "orderStatus": "pending",
+      "specialNoteBuyer": "Please deliver after 6 PM",
+      "specialNoteSeller": "Fragile items, handle with care",
+      "systemNote": "Order placed via mobile app",
+      "isDelivery": true,
+      "deliveryType": "home_delivery",
+      "deliveryAddressId": "60d21b4667d0d8992e610c86",
+      "isActive": true,
+      "createdAt": "2023-06-15T12:00:00.000Z",
+      "updatedAt": "2023-06-15T12:00:00.000Z"
+    },
+    "paymentDetails": null
   }
 }
 ```
@@ -128,82 +140,81 @@ Authorization: Bearer <token>
 
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Number of results per page (default: 10)
-- `status` (optional): Filter by order status (pending, processing, shipped, delivered, cancelled)
+- `status` (optional): Filter by order status (pending, confirmed, processing, shipped, delivered, cancelled, returned, partially_cancelled, partially_returned)
 
 **Response:**
 
 ```json
 {
-  "status": "success",
-  "results": 2,
-  "pagination": {
-    "total": 5,
-    "page": 1,
-    "pages": 3,
-    "limit": 2
-  },
+  "success": true,
   "data": {
     "orders": [
       {
         "_id": "60d21b4667d0d8992e610c85",
-        "orderNumber": "ORD-1234567890",
+        "orderNumber": "#230615-0001",
         "user": "60d21b4667d0d8992e610c85",
+        "store": {
+          "_id": "60d21b4667d0d8992e610c86",
+          "name": "Electronics Hub",
+          "logo": "https://example.com/logo.jpg"
+        },
         "items": [
           {
-            "product": {
-              "_id": "60d21b4667d0d8992e610c85",
-              "name": "Smartphone X",
-              "mainImage": "https://example.com/smartphone.jpg"
-            },
+            "product": "60d21b4667d0d8992e610c87",
             "quantity": 2,
-            "variant": {
-              "color": "Black",
-              "storage": "128GB"
-            },
             "price": 45000,
-            "totalPrice": 90000,
-            "store": {
-              "_id": "60d21b4667d0d8992e610c86",
-              "name": "Electronics Hub"
-            }
+            "discountedPrice": 40000,
+            "totalPrice": 80000,
+            "status": "active"
           }
         ],
-        "total": 81000,
-        "status": "delivered",
-        "paymentStatus": "paid",
-        "createdAt": "2023-01-01T12:00:00.000Z"
+        "paymentType": "cod",
+        "paymentStatus": "pending",
+        "totalPayableAmount": 80000,
+        "orderStatus": "pending",
+        "isDelivery": true,
+        "deliveryType": "home_delivery",
+        "deliveryTrackingId": {
+          "currentStatus": "pending"
+        },
+        "createdAt": "2023-06-15T12:00:00.000Z"
       },
       {
         "_id": "60d21b4667d0d8992e610c86",
-        "orderNumber": "ORD-0987654321",
+        "orderNumber": "#230616-0001",
         "user": "60d21b4667d0d8992e610c85",
+        "store": {
+          "_id": "60d21b4667d0d8992e610c86",
+          "name": "Electronics Hub",
+          "logo": "https://example.com/logo.jpg"
+        },
         "items": [
           {
-            "product": {
-              "_id": "60d21b4667d0d8992e610c86",
-              "name": "Laptop Pro",
-              "mainImage": "https://example.com/laptop.jpg"
-            },
+            "product": "60d21b4667d0d8992e610c88",
             "quantity": 1,
-            "variant": {
-              "color": "Silver",
-              "ram": "16GB",
-              "storage": "512GB"
-            },
             "price": 75000,
+            "discountedPrice": 75000,
             "totalPrice": 75000,
-            "store": {
-              "_id": "60d21b4667d0d8992e610c86",
-              "name": "Electronics Hub"
-            }
+            "status": "active"
           }
         ],
-        "total": 75000,
-        "status": "shipped",
-        "paymentStatus": "paid",
-        "createdAt": "2023-01-02T12:00:00.000Z"
+        "paymentType": "upi",
+        "paymentStatus": "captured",
+        "totalPayableAmount": 75000,
+        "orderStatus": "confirmed",
+        "isDelivery": false,
+        "deliveryType": "pickup",
+        "deliveryTrackingId": {
+          "currentStatus": "processing"
+        },
+        "createdAt": "2023-06-16T12:00:00.000Z"
       }
-    ]
+    ],
+    "pagination": {
+      "total": 2,
+      "page": 1,
+      "pages": 1
+    }
   }
 }
 ```
@@ -224,123 +235,92 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "status": "success",
+  "success": true,
   "data": {
-    "order": {
-      "_id": "60d21b4667d0d8992e610c85",
-      "orderNumber": "ORD-1234567890",
-      "user": {
-        "_id": "60d21b4667d0d8992e610c85",
-        "name": "John Doe",
-        "mobileNumber": "+919876543210"
-      },
+    "_id": "60d21b4667d0d8992e610c85",
+    "orderNumber": "#230615-0001",
+    "cartSnapshot": {
+      "_id": "60d21b4667d0d8992e610c88",
+      "originalCartId": "60d21b4667d0d8992e610c89",
+      "user": "60d21b4667d0d8992e610c85",
+      "store": "60d21b4667d0d8992e610c86",
       "items": [
         {
-          "product": {
-            "_id": "60d21b4667d0d8992e610c85",
-            "name": "Smartphone X",
-            "mainImage": "https://example.com/smartphone.jpg"
-          },
+          "product": "60d21b4667d0d8992e610c87",
           "quantity": 2,
-          "variant": {
-            "color": "Black",
-            "storage": "128GB"
-          },
           "price": 45000,
-          "totalPrice": 90000,
-          "store": {
-            "_id": "60d21b4667d0d8992e610c86",
-            "name": "Electronics Hub"
-          }
+          "effectivePrice": 40000
         }
       ],
-      "storeOrders": [
-        {
-          "store": {
-            "_id": "60d21b4667d0d8992e610c86",
-            "name": "Electronics Hub"
-          },
-          "items": [
-            {
-              "product": {
-                "_id": "60d21b4667d0d8992e610c85",
-                "name": "Smartphone X",
-                "mainImage": "https://example.com/smartphone.jpg"
-              },
-              "quantity": 2,
-              "variant": {
-                "color": "Black",
-                "storage": "128GB"
-              },
-              "price": 45000,
-              "totalPrice": 90000
-            }
-          ],
-          "subtotal": 90000,
-          "discount": 9000,
-          "total": 81000,
-          "status": "delivered",
-          "trackingDetails": {
-            "courier": "Express Delivery",
-            "trackingNumber": "ED123456789",
-            "trackingUrl": "https://expressdelivery.com/track/ED123456789"
-          }
-        }
-      ],
-      "address": {
-        "_id": "60d21b4667d0d8992e610c85",
-        "houseDetails": "Flat 101, Building A",
-        "streetAddress": "MG Road",
-        "city": "Mumbai",
-        "state": "Maharashtra",
-        "pincode": "400001",
-        "country": "India"
-      },
-      "paymentMethod": "razorpay",
-      "paymentStatus": "paid",
-      "paymentDetails": {
-        "razorpayOrderId": "order_123456789",
-        "razorpayPaymentId": "pay_123456789",
-        "razorpaySignature": "signature_123456789"
-      },
-      "coupon": {
-        "code": "WELCOME10",
-        "discount": 10,
-        "discountType": "percentage"
-      },
-      "subtotal": 90000,
-      "discount": 9000,
-      "total": 81000,
-      "status": "delivered",
-      "statusHistory": [
+      "totalAmount": 90000,
+      "totalDiscount": 10000,
+      "couponDiscount": 5000,
+      "offerDiscount": 5000,
+      "deliveryCharges": 0,
+      "payableAmount": 80000
+    },
+    "user": "60d21b4667d0d8992e610c85",
+    "store": "60d21b4667d0d8992e610c86",
+    "items": [
+      {
+        "product": "60d21b4667d0d8992e610c87",
+        "quantity": 2,
+        "price": 45000,
+        "discountedPrice": 40000,
+        "totalPrice": 80000,
+        "status": "active"
+      }
+    ],
+    "paymentType": "cod",
+    "paymentStatus": "pending",
+    "totalWithoutDiscount": 90000,
+    "totalPayableAmount": 80000,
+    "totalDiscount": 10000,
+    "couponDiscount": 5000,
+    "offerDiscount": 5000,
+    "deliveryCharges": 0,
+    "orderStatus": "pending",
+    "specialNoteBuyer": "Please deliver after 6 PM",
+    "specialNoteSeller": "Fragile items, handle with care",
+    "systemNote": "Order placed via mobile app",
+    "isDelivery": true,
+    "deliveryType": "home_delivery",
+    "deliveryAddressId": {
+      "_id": "60d21b4667d0d8992e610c86",
+      "user": "60d21b4667d0d8992e610c85",
+      "name": "John Doe",
+      "mobileNumber": "+919876543210",
+      "addressLine1": "123, Main Street",
+      "addressLine2": "Apartment 4B",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "pincode": "400001",
+      "country": "India",
+      "isDefault": true
+    },
+    "deliveryTrackingId": {
+      "_id": "60d21b4667d0d8992e610c90",
+      "order": "60d21b4667d0d8992e610c85",
+      "currentStatus": "pending",
+      "statusUpdates": [
         {
           "status": "pending",
-          "timestamp": "2023-01-01T12:00:00.000Z"
-        },
-        {
-          "status": "processing",
-          "timestamp": "2023-01-01T13:00:00.000Z"
-        },
-        {
-          "status": "shipped",
-          "timestamp": "2023-01-02T12:00:00.000Z"
-        },
-        {
-          "status": "delivered",
-          "timestamp": "2023-01-03T12:00:00.000Z"
+          "timestamp": "2023-06-15T12:00:00.000Z",
+          "description": "Order has been placed"
         }
-      ],
-      "createdAt": "2023-01-01T12:00:00.000Z",
-      "updatedAt": "2023-01-03T12:00:00.000Z"
-    }
+      ]
+    },
+    "isActive": true,
+    "createdAt": "2023-06-15T12:00:00.000Z",
+    "updatedAt": "2023-06-15T12:00:00.000Z"
   }
 }
 ```
 
-### Cancel Order
+### Update Order Status
 
 ```
-PATCH /api/orders/:id/cancel
+PATCH /api/orders/:id/status
 ```
 
 **Headers:**
@@ -353,7 +333,7 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "cancellationReason": "Changed my mind"
+  "status": "confirmed"
 }
 ```
 
@@ -361,24 +341,94 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "status": "success",
+  "success": true,
   "data": {
-    "order": {
-      "_id": "60d21b4667d0d8992e610c85",
-      "status": "cancelled",
-      "statusHistory": [
-        {
-          "status": "pending",
-          "timestamp": "2023-01-01T12:00:00.000Z"
-        },
-        {
-          "status": "cancelled",
-          "timestamp": "2023-01-01T14:00:00.000Z"
-        }
-      ],
-      "cancellationReason": "Changed my mind",
-      "updatedAt": "2023-01-01T14:00:00.000Z"
-    }
+    "_id": "60d21b4667d0d8992e610c85",
+    "orderNumber": "#230615-0001",
+    "orderStatus": "confirmed",
+    "updatedAt": "2023-06-15T14:00:00.000Z"
+  }
+}
+```
+
+### Cancel Order
+
+```
+POST /api/orders/:id/cancel
+```
+
+**Headers:**
+
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+
+```json
+{
+  "reason": "Changed my mind"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Order cancelled successfully",
+  "data": {
+    "_id": "60d21b4667d0d8992e610c85",
+    "orderNumber": "#230615-0001",
+    "orderStatus": "cancelled",
+    "cancelledAt": "2023-06-15T15:00:00.000Z",
+    "cancelReason": "Changed my mind"
+  }
+}
+```
+
+### Cancel Order Items
+
+```
+POST /api/orders/:id/cancel-items
+```
+
+**Headers:**
+
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+
+```json
+{
+  "items": [0],
+  "reason": "Product no longer needed"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "60d21b4667d0d8992e610c85",
+    "orderNumber": "#230615-0001",
+    "orderStatus": "partially_cancelled",
+    "items": [
+      {
+        "product": "60d21b4667d0d8992e610c87",
+        "quantity": 2,
+        "price": 45000,
+        "discountedPrice": 40000,
+        "totalPrice": 80000,
+        "status": "cancelled",
+        "cancelledAt": "2023-06-15T16:00:00.000Z",
+        "cancelReason": "Product no longer needed"
+      }
+    ]
   }
 }
 ```
@@ -399,100 +449,60 @@ Authorization: Bearer <token>
 
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Number of results per page (default: 10)
-- `status` (optional): Filter by order status (pending, processing, shipped, delivered, cancelled)
+- `status` (optional): Filter by order status (pending, confirmed, processing, shipped, delivered, cancelled, returned, partially_cancelled, partially_returned)
 
 **Response:**
 
 ```json
 {
-  "status": "success",
-  "results": 2,
-  "pagination": {
-    "total": 8,
-    "page": 1,
-    "pages": 4,
-    "limit": 2
-  },
+  "success": true,
   "data": {
     "orders": [
       {
         "_id": "60d21b4667d0d8992e610c85",
-        "orderNumber": "ORD-1234567890",
+        "orderNumber": "#230615-0001",
         "user": {
           "_id": "60d21b4667d0d8992e610c85",
           "name": "John Doe",
-          "mobileNumber": "+919876543210"
+          "email": "john@example.com"
         },
         "items": [
           {
-            "product": {
-              "_id": "60d21b4667d0d8992e610c85",
-              "name": "Smartphone X",
-              "mainImage": "https://example.com/smartphone.jpg"
-            },
+            "product": "60d21b4667d0d8992e610c87",
             "quantity": 2,
-            "variant": {
-              "color": "Black",
-              "storage": "128GB"
-            },
             "price": 45000,
-            "totalPrice": 90000
+            "discountedPrice": 40000,
+            "totalPrice": 80000,
+            "status": "active"
           }
         ],
-        "subtotal": 90000,
-        "discount": 9000,
-        "total": 81000,
-        "status": "delivered",
-        "address": {
-          "houseDetails": "Flat 101, Building A",
-          "streetAddress": "MG Road",
+        "paymentType": "cod",
+        "paymentStatus": "pending",
+        "totalPayableAmount": 80000,
+        "orderStatus": "pending",
+        "isDelivery": true,
+        "deliveryType": "home_delivery",
+        "deliveryTrackingId": {
+          "currentStatus": "pending"
+        },
+        "deliveryAddressId": {
+          "name": "John Doe",
+          "mobileNumber": "+919876543210",
+          "addressLine1": "123, Main Street",
+          "addressLine2": "Apartment 4B",
           "city": "Mumbai",
           "state": "Maharashtra",
           "pincode": "400001",
           "country": "India"
         },
-        "createdAt": "2023-01-01T12:00:00.000Z"
-      },
-      {
-        "_id": "60d21b4667d0d8992e610c86",
-        "orderNumber": "ORD-0987654321",
-        "user": {
-          "_id": "60d21b4667d0d8992e610c86",
-          "name": "Jane Smith",
-          "mobileNumber": "+919876543211"
-        },
-        "items": [
-          {
-            "product": {
-              "_id": "60d21b4667d0d8992e610c86",
-              "name": "Laptop Pro",
-              "mainImage": "https://example.com/laptop.jpg"
-            },
-            "quantity": 1,
-            "variant": {
-              "color": "Silver",
-              "ram": "16GB",
-              "storage": "512GB"
-            },
-            "price": 75000,
-            "totalPrice": 75000
-          }
-        ],
-        "subtotal": 75000,
-        "discount": 0,
-        "total": 75000,
-        "status": "shipped",
-        "address": {
-          "houseDetails": "Office 202, Building B",
-          "streetAddress": "SV Road",
-          "city": "Mumbai",
-          "state": "Maharashtra",
-          "pincode": "400002",
-          "country": "India"
-        },
-        "createdAt": "2023-01-02T12:00:00.000Z"
+        "createdAt": "2023-06-15T12:00:00.000Z"
       }
-    ]
+    ],
+    "pagination": {
+      "total": 1,
+      "page": 1,
+      "pages": 1
+    }
   }
 }
 ```

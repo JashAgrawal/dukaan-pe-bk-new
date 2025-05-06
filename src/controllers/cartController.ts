@@ -273,6 +273,7 @@ export const applyCoupon = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const userId = (req as any).user.id;
     const { couponCode } = req.body;
+    console.log(couponCode)
 
     // Find cart
     const cart = await Cart.findOne({
@@ -461,17 +462,27 @@ export const removeOffer = catchAsync(
 /**
  * Get user's cart
  * @route GET /api/cart
+ * @query storeId - Optional store ID to filter cart by store
  * @access Private
  */
 export const getCart = catchAsync(async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
+  const { storeId } = req.query;
 
-  // Find cart
-  const cart = await Cart.findOne({
+  // Build query filter
+  const filter: any = {
     user: userId,
     state: "active",
     isDeleted: false,
-  }).populate([
+  };
+
+  // Add store filter if storeId is provided
+  if (storeId) {
+    filter.store = storeId;
+  }
+
+  // Find cart
+  const cart = await Cart.findOne(filter).populate([
     {
       path: "items.product",
       select: "name mainImage price sellingPrice inventory",
@@ -541,18 +552,28 @@ export const getCart = catchAsync(async (req: Request, res: Response) => {
 /**
  * Get cart item count
  * @route GET /api/cart/count
+ * @query storeId - Optional store ID to filter cart by store
  * @access Private
  */
 export const getCartItemCount = catchAsync(
   async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
+    const { storeId } = req.query;
 
-    // Find cart
-    const cart = await Cart.findOne({
+    // Build query filter
+    const filter: any = {
       user: userId,
       state: "active",
       isDeleted: false,
-    });
+    };
+
+    // Add store filter if storeId is provided
+    if (storeId) {
+      filter.store = storeId;
+    }
+
+    // Find cart
+    const cart = await Cart.findOne(filter);
 
     if (!cart) {
       return res.status(200).json({
@@ -574,19 +595,29 @@ export const getCartItemCount = catchAsync(
 /**
  * Check if product is in cart and get quantity
  * @route GET /api/cart/check/:productId
+ * @query storeId - Optional store ID to filter cart by store
  * @access Private
  */
 export const checkProductInCart = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
     const productId = req.params.productId;
+    const { storeId } = req.query;
 
-    // Find cart
-    const cart = await Cart.findOne({
+    // Build query filter
+    const filter: any = {
       user: userId,
       state: "active",
       isDeleted: false,
-    });
+    };
+
+    // Add store filter if storeId is provided
+    if (storeId) {
+      filter.store = storeId;
+    }
+
+    // Find cart
+    const cart = await Cart.findOne(filter);
 
     if (!cart) {
       return res.status(200).json({

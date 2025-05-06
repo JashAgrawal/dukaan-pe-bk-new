@@ -2129,8 +2129,9 @@ Authorization: Bearer <token>
   "success": true,
   "data": {
     "razorpayOrderId": "order_JDcW8XfOkBGjHB",
-    "amount": 81000,
+    "amount": 810,
     "currency": "INR",
+    "key": "rzp_test_zzDWrwVcy40Vxs",
     "orderId": "60d21b4667d0d8992e610c88"
   }
 }

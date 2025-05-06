@@ -28,6 +28,7 @@ Authorization: Bearer <token>
 
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Number of results per page (default: 10)
+- `storeId` (optional): Filter wishlist items by store ID
 
 **Response:**
 
@@ -91,13 +92,22 @@ Authorization: Bearer <token>
 ### Add Product to Wishlist
 
 ```
-POST /api/product-wishlist/:productId
+POST /api/product-wishlist
 ```
 
 **Headers:**
 
 ```
 Authorization: Bearer <token>
+```
+
+**Request Body:**
+
+```json
+{
+  "product": "60d21b4667d0d8992e610c85",
+  "store": "60d21b4667d0d8992e610c86"
+}
 ```
 
 **Response:**
@@ -110,6 +120,7 @@ Authorization: Bearer <token>
       "_id": "60d21b4667d0d8992e610c85",
       "user": "60d21b4667d0d8992e610c85",
       "product": "60d21b4667d0d8992e610c85",
+      "store": "60d21b4667d0d8992e610c86",
       "createdAt": "2023-01-01T12:00:00.000Z",
       "updatedAt": "2023-01-01T12:00:00.000Z"
     }
@@ -128,6 +139,10 @@ DELETE /api/product-wishlist/:productId
 ```
 Authorization: Bearer <token>
 ```
+
+**Query Parameters:**
+
+- `storeId` (optional): The store ID to specify which store's product to remove from wishlist
 
 **Response:**
 

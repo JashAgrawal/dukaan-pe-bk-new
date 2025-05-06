@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { JwtPayload } from "jsonwebtoken";
 import Cart from "../models/Cart";
 import CartSnapshot from "../models/CartSnapshot";
 import Order, { OrderStatusType } from "../models/Order";
@@ -26,6 +25,9 @@ export const createOrder = catchAsync(async (req: Request, res: Response) => {
       deliveryAddressId,
       specialNoteBuyer,
       specialNoteSeller,
+      isDelivery = true,
+      deliveryType = "home_delivery",
+      systemNote,
     } = req.body;
 
     const userId = (req as any).user?.id;
@@ -116,8 +118,28 @@ export const createOrder = catchAsync(async (req: Request, res: Response) => {
       status: "active",
     }));
 
+    // Generate order number
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+
+    // Get count of orders for today to generate sequential number
+    const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
+    const todayEnd = new Date(new Date().setHours(23, 59, 59, 999));
+
+    const count = await Order.countDocuments({
+      createdAt: { $gte: todayStart, $lte: todayEnd },
+    }).session(session);
+
+    // Format: #YYMMDD-XXXX (XXXX is sequential number for the day)
+    const orderNumber = `#${year}${month}${day}-${(count + 1)
+      .toString()
+      .padStart(4, "0")}`;
+
     // Create order
     const order = new Order({
+      orderNumber,
       cartSnapshot: cartSnapshot._id,
       user: userId,
       store: cart.store,
@@ -135,6 +157,9 @@ export const createOrder = catchAsync(async (req: Request, res: Response) => {
       orderStatus: "pending",
       specialNoteBuyer,
       specialNoteSeller,
+      systemNote,
+      isDelivery,
+      deliveryType,
       deliveryAddressId,
     });
 
@@ -211,6 +236,7 @@ export const createOrder = catchAsync(async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
+    console.log(error);
     await session.abortTransaction();
     session.endSession();
     return res.status(500).json({
@@ -238,7 +264,10 @@ export const getOrderById = catchAsync(async (req: Request, res: Response) => {
       .populate("cartSnapshot")
       .populate("deliveryTrackingId")
       .populate("deliveryAddressId")
-      .populate("paymentId");
+      .populate("paymentId").populate({
+        path: "items.product",
+        select: "name mainImage price sellingPrice",
+      });
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
@@ -273,19 +302,13 @@ export const getUserOrders = catchAsync(async (req: Request, res: Response) => {
       query.orderStatus = status;
     }
 
-    const options = {
-      page: parseInt(page as string),
-      limit: parseInt(limit as string),
-      sort: { createdAt: -1 },
-      populate: [
-        { path: "store", select: "name logo" },
-        { path: "deliveryTrackingId", select: "currentStatus" },
-      ],
-    };
+    // Pagination options
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
 
     const orders = await Order.find(query)
-      .skip((parseInt(page as string) - 1) * parseInt(limit as string))
-      .limit(parseInt(limit as string))
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
       .sort({ createdAt: -1 })
       .populate("store", "name logo")
       .populate("deliveryTrackingId", "currentStatus");
@@ -298,8 +321,8 @@ export const getUserOrders = catchAsync(async (req: Request, res: Response) => {
         orders,
         pagination: {
           total,
-          page: parseInt(page as string),
-          pages: Math.ceil(total / parseInt(limit as string)),
+          page: pageNum,
+          pages: Math.ceil(total / limitNum),
         },
       },
     });
@@ -333,9 +356,13 @@ export const getStoreOrders = catchAsync(
         query.orderStatus = status;
       }
 
+      // Pagination options
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+
       const orders = await Order.find(query)
-        .skip((parseInt(page as string) - 1) * parseInt(limit as string))
-        .limit(parseInt(limit as string))
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum)
         .sort({ createdAt: -1 })
         .populate("user", "name email")
         .populate("deliveryTrackingId", "currentStatus")
@@ -349,8 +376,8 @@ export const getStoreOrders = catchAsync(
           orders,
           pagination: {
             total,
-            page: parseInt(page as string),
-            pages: Math.ceil(total / parseInt(limit as string)),
+            page: pageNum,
+            pages: Math.ceil(total / limitNum),
           },
         },
       });

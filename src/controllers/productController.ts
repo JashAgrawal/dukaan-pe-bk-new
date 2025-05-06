@@ -491,6 +491,7 @@ export const getBestRatedProducts = catchAsync(
 export const getProductsByProductCategory = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const categoryId = req.params.categoryId;
+    const storeId = req.query.store_id as string;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
@@ -511,7 +512,10 @@ export const getProductsByProductCategory = catchAsync(
     const query = {
       ...buildBaseQuery(req),
       category: { $in: categoryIds },
+      store_id: storeId,
     };
+
+    console.log(query);
 
     const products = await Product.find(query)
       .sort({ popularityIndex: -1, orderCount: -1 })
@@ -591,6 +595,7 @@ export const getProductsByFavouriteCount = catchAsync(
 export const searchStoreProducts = catchAsync(
   async (req: Request, res: Response) => {
     const searchTerm = req.query.q as string;
+    const storeId = req.query.store_id as string;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
@@ -614,10 +619,14 @@ export const searchStoreProducts = catchAsync(
       // First attempt: Use text search with proper index
       const textQuery = {
         ...baseQuery,
-        $text: { $search: searchTerm },
+        $or: [
+          { name: { $regex: searchTerm, $options: "i" } },
+          { description: { $regex: searchTerm, $options: "i" } },
+          { tags: { $regex: searchTerm, $options: "i" } },
+        ],
+        store_id: storeId,
         isDeleted: false,
       };
-
       products = await Product.find(textQuery)
         .sort({ score: { $meta: "textScore" }, popularityIndex: -1 })
         .skip(skip)
@@ -630,6 +639,7 @@ export const searchStoreProducts = catchAsync(
           path: "store",
           select: "name logo",
         });
+        console.log(products);
 
       total = await Product.countDocuments(textQuery);
     } catch (error) {
@@ -637,6 +647,7 @@ export const searchStoreProducts = catchAsync(
       const regexQuery = {
         ...baseQuery,
         isDeleted: false,
+        store_id: storeId,
         $or: [
           { name: { $regex: searchTerm, $options: "i" } },
           { description: { $regex: searchTerm, $options: "i" } },
@@ -787,6 +798,7 @@ export const searchProductsOverall = catchAsync(
  */
 export const searchProductsWithFilters = catchAsync(
   async (req: Request, res: Response) => {
+    const storeId = req.query.store_id as string;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
@@ -852,6 +864,10 @@ export const searchProductsWithFilters = catchAsync(
       if (maxPrice !== undefined) {
         filterQuery.sellingPrice.$lte = maxPrice;
       }
+    }
+
+    if(storeId){
+      filterQuery.store_id = storeId;
     }
 
     // Determine sort order

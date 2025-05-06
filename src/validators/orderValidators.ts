@@ -5,6 +5,7 @@ import { catchAsync } from "../middlewares/errorHandler";
 // Validate create order request
 export const validateCreateOrder = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    console.log(req.body);
     const schema = Joi.object({
       cartId: Joi.string().required().messages({
         "string.empty": "Cart ID is required",
@@ -22,6 +23,11 @@ export const validateCreateOrder = catchAsync(
         "string.empty": "Delivery address ID is required",
         "any.required": "Delivery address ID is required",
       }),
+      isDelivery: Joi.boolean().default(true),
+      deliveryType: Joi.string().valid("home_delivery", "pickup").default("home_delivery").messages({
+        "any.only": "Delivery type must be either 'home_delivery' or 'pickup'",
+      }),
+      systemNote: Joi.string().allow("", null),
       specialNoteBuyer: Joi.string().allow("", null),
       specialNoteSeller: Joi.string().allow("", null),
     });

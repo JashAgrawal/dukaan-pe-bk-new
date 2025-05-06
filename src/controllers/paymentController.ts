@@ -16,7 +16,7 @@ import { catchAsync } from "../middlewares/errorHandler";
 export const createRazorpayOrder = catchAsync(
   async (req: Request, res: Response) => {
     try {
-      const { orderId, amount, currency = "INR" } = req.body;
+      const { orderId, currency = "INR" } = req.body;
       const userId = (req as any).user?.id;
 
       // Validate order exists and belongs to user
@@ -28,6 +28,9 @@ export const createRazorpayOrder = catchAsync(
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
+
+      // Get the amount from the order
+      const amount = order.totalPayableAmount;
 
       // Check if payment already exists for this order
       const existingPayment = await Payment.findOne({
@@ -43,6 +46,7 @@ export const createRazorpayOrder = catchAsync(
             amount: existingPayment.amount,
             currency: existingPayment.currency,
             key: razorpayConfig.key_id,
+            orderId: orderId
           },
         });
       }
@@ -85,6 +89,7 @@ export const createRazorpayOrder = catchAsync(
           amount: (razorpayOrder.amount as number) / 100,
           currency: razorpayOrder.currency,
           key: razorpayConfig.key_id,
+          orderId: orderId
         },
       });
     } catch (error: any) {

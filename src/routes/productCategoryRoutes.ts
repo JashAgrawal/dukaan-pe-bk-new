@@ -8,6 +8,7 @@ import {
   restoreProductCategory,
   updateProductCounts,
   getSubProductCategories,
+  getStoreProductCategories,
 } from "../controllers/productCategoryController";
 import { protect, restrictTo } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validationMiddleware";
@@ -19,6 +20,7 @@ import {
 const router = Router();
 
 // Public routes
+router.get("/store/:storeId", getStoreProductCategories);
 router.get("/", getProductCategories);
 router.get("/sub", getSubProductCategories);
 router.get("/:id", getProductCategory);

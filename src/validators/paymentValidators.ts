@@ -5,21 +5,19 @@ import { catchAsync } from "../middlewares/errorHandler";
 // Validate create Razorpay order request
 export const validateCreateRazorpayOrder = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    console.log(req.body);
     const schema = Joi.object({
       orderId: Joi.string().required().messages({
         "string.empty": "Order ID is required",
         "any.required": "Order ID is required",
       }),
-      amount: Joi.number().positive().required().messages({
-        "number.base": "Amount must be a number",
-        "number.positive": "Amount must be positive",
-        "any.required": "Amount is required",
-      }),
+      // Currency is optional, will be fetched from order if not provided
       currency: Joi.string().default("INR"),
     });
 
     const { error } = schema.validate(req.body);
     if (error) {
+      console.log(error);
       return res.status(400).json({
         success: false,
         message: error.details[0].message,
@@ -34,6 +32,10 @@ export const validateCreateRazorpayOrder = catchAsync(
 export const validateVerifyPayment = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const schema = Joi.object({
+      orderId: Joi.string().required().messages({
+        "string.empty": "Order ID is required",
+        "any.required": "Order ID is required",
+      }),
       razorpayOrderId: Joi.string().required().messages({
         "string.empty": "Razorpay order ID is required",
         "any.required": "Razorpay order ID is required",
@@ -47,7 +49,7 @@ export const validateVerifyPayment = catchAsync(
         "any.required": "Razorpay signature is required",
       }),
     });
-
+    console.log(req.body);
     const { error } = schema.validate(req.body);
     if (error) {
       return res.status(400).json({
